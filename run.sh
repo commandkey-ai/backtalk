@@ -72,4 +72,4 @@ if ! "$UV" sync -q --frozen; then
     exit 1
   fi
 fi
-exec "$UV" run python -m backtalk.main "$@" 2> >(grep -vi "pkg_resources\|VIRTUAL_ENV" >&2)
+exec "$UV" run --frozen python -m backtalk.main "$@" 2> >(grep -vi "pkg_resources\|VIRTUAL_ENV" >&2)
