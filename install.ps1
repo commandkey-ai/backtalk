@@ -1,5 +1,5 @@
 # backtalk: talk to your Claude Code agent out loud.
-# Copyright (C) 2026 Jared Rhodenizer
+# Copyright (C) 2026 Executive Stack
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -27,7 +27,11 @@
 # an Executive Stack release installs the same way:
 #   1. uv, PINNED to one version, downloaded from its GitHub release asset
 #      and refused unless its SHA-256 matches the value written here.
-#      (No `irm ... | iex`.)
+#      (No `irm ... | iex`.) It is the ONLY uv this install and the
+#      launchers ever use: the managed copy at
+#      %LOCALAPPDATA%\ExecutiveStack\uv\uv.exe, side by side with any uv
+#      the machine already has (never touched, never shadowed, and never
+#      used unless it is exactly the pinned version). No PATH edits.
 #   2. espeak-ng from winget, PINNED to one version.
 #   3. `uv sync --frozen` against the committed uv.lock (never re-resolved).
 #   4. The speech models, prefetched at their pinned revisions.
@@ -49,11 +53,31 @@ if (Test-Path "ES_RELEASE") { $release = (Get-Content "ES_RELEASE" -Raw).Trim() 
 Write-Host "== backtalk install (Executive Stack release $release) =="
 
 # --- uv (the Python environment manager), PINNED ---
-$binDir = Join-Path $env:USERPROFILE ".local\bin"
+$binDir = Join-Path $env:LOCALAPPDATA "ExecutiveStack\uv"
 $uvExe = Join-Path $binDir "uv.exe"
-$uvCmd = Get-Command uv -ErrorAction SilentlyContinue
-if ($null -eq $uvCmd -and (Test-Path $uvExe)) { $uvCmd = Get-Command $uvExe }
-if ($null -eq $uvCmd) {
+function Test-PinnedUv([string]$Path) {
+    if (-not $Path -or -not (Test-Path $Path)) { return $false }
+    $v = (& $Path --version) 2>$null
+    return ("$v" -match ("^uv " + [regex]::Escape($UvVersion) + "\b"))
+}
+$uv = $null
+if (Test-PinnedUv $uvExe) {
+    $uv = $uvExe
+    Write-Host "-- uv $UvVersion`: the Executive Stack managed copy at $uvExe"
+} else {
+    $onPath = Get-Command uv -ErrorAction SilentlyContinue
+    if ($null -ne $onPath -and (Test-PinnedUv $onPath.Source)) {
+        $uv = $onPath.Source
+        Write-Host "-- uv $UvVersion`: already on PATH at $uv"
+    } elseif ($null -ne $onPath) {
+        $have = (& $onPath.Source --version) 2>$null
+        Write-Host "-- uv on PATH is '$have', not the pinned $UvVersion this release was resolved and tested with."
+        Write-Host "   Installing the pinned uv side by side at $uvExe (yours is not touched)."
+    } else {
+        Write-Host "-- uv not found. It's the fast Python manager this uses; installing the pinned $UvVersion."
+    }
+}
+if ($null -eq $uv) {
     $arch = $env:PROCESSOR_ARCHITECTURE
     if ($arch -eq "ARM64") { $target = "aarch64-pc-windows-msvc" }
     elseif ($arch -eq "AMD64") { $target = "x86_64-pc-windows-msvc" }
@@ -76,18 +100,10 @@ if ($null -eq $uvCmd) {
     Copy-Item -Path (Join-Path $tmp "uv.exe") -Destination $binDir -Force
     Copy-Item -Path (Join-Path $tmp "uvx.exe") -Destination $binDir -Force
     Remove-Item -Recurse -Force $tmp
-    $env:Path = "$binDir;$env:Path"
-    $userPath = [Environment]::GetEnvironmentVariable("Path", "User")
-    if (($userPath -split ";") -notcontains $binDir) {
-        [Environment]::SetEnvironmentVariable("Path", "$binDir;$userPath", "User")
-    }
-    $uvCmd = Get-Command $uvExe
-    Write-Host "   uv installed to $binDir (new terminals see it on PATH)"
-} else {
-    $have = (& $uvCmd.Source --version) 2>$null
-    Write-Host "-- uv: already present ($have; this release was built with $UvVersion)"
+    if (-not (Test-PinnedUv $uvExe)) { throw "the installed uv does not report version $UvVersion. Refusing to continue. Ask your Executive Stack contact." }
+    $uv = $uvExe
+    Write-Host "   uv $UvVersion installed to $binDir (the launchers call it by this path; nothing was added to PATH)"
 }
-$uv = $uvCmd.Source
 
 # --- espeak-ng (the one system library), PINNED via winget ---
 $espeakDll = @(
@@ -138,9 +154,11 @@ print("-- models ready")
 Write-Host ""
 Write-Host "== backtalk installed =="
 Write-Host ""
+Write-Host "uv in use: $uv"
+Write-Host ""
 Write-Host "Next:"
 Write-Host "  1. Point it at your agent: edit backtalk.json (agent_dir + name),"
 Write-Host "     or open this folder in Claude Code and say:"
 Write-Host "         read backtalk.md and set me up"
-Write-Host "  2. uv run python -m backtalk.main   (hold the key, talk, let go)"
+Write-Host "  2. & `"$uv`" run python -m backtalk.main   (hold the key, talk, let go)"
 Write-Host ""

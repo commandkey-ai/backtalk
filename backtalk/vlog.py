@@ -15,7 +15,7 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
-# Modified by Executive Stack, 2026-09-22 (see NOTICE-EXECUTIVE-STACK.md).
+# Modified by Executive Stack, 2026-09-23 (see NOTICE-EXECUTIVE-STACK.md).
 """Session log — terminal print + timestamped append to logs/backtalk.log.
 
 Exists because the hardest voice bug ever hit here (the off-by-one
@@ -25,10 +25,45 @@ only printed to a terminal window nobody saved. Every load-bearing line
 through log() so the next gremlin comes with receipts.
 """
 import datetime
+import os
 import sys
 from pathlib import Path
 
 LOG_PATH = Path(__file__).resolve().parent.parent / "logs" / "backtalk.log"
+
+# Executive Stack: the log is a full conversation transcript, so on the
+# systems that honour file modes (macOS, Linux) the folder is created
+# 0700 and the file 0600: this user only, whatever the umask says. Windows
+# has no such modes (chmod there only toggles read-only), so the files
+# inherit the ACL of the folder they sit in; the backtalk folder lives in
+# the user's own profile, which other standard accounts cannot read.
+_LOG_DIR_MODE = 0o700
+_LOG_FILE_MODE = 0o600
+_perms_checked = False
+
+
+def _restrict_perms():
+    """Tighten the log folder and file once per process; best-effort."""
+    global _perms_checked
+    if _perms_checked or os.name != "posix":
+        return
+    _perms_checked = True
+    for path, mode in ((LOG_PATH.parent, _LOG_DIR_MODE),
+                       (LOG_PATH, _LOG_FILE_MODE)):
+        try:
+            if path.exists():
+                os.chmod(path, mode)
+        except OSError:
+            pass
+
+
+def _open_append():
+    """Open the log for appending; a file created here starts 0600."""
+    if os.name == "posix":
+        fd = os.open(str(LOG_PATH), os.O_WRONLY | os.O_CREAT | os.O_APPEND,
+                     _LOG_FILE_MODE)
+        return os.fdopen(fd, "a", encoding="utf-8")
+    return LOG_PATH.open("a", encoding="utf-8")
 
 # Executive Stack: size-based rotation. The log holds every utterance and
 # every spoken reply, i.e. a complete conversation transcript, so it is
@@ -99,14 +134,15 @@ def log(line: str):
         # Last resort if the console refused UTF-8: readable beats fatal.
         print(line.encode("ascii", "replace").decode("ascii"), flush=True)
     try:
-        LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
+        LOG_PATH.parent.mkdir(parents=True, exist_ok=True, mode=_LOG_DIR_MODE)
+        _restrict_perms()
         _rotate_if_needed()
         # encoding pinned on purpose. The default is the platform's, which
         # on Windows is that same legacy codepage -- so the log file kept
         # its own permanently corrupted copy of every line the console had
         # already mangled, and the receipts this module exists to produce
         # were unreadable exactly where they were most needed.
-        with LOG_PATH.open("a", encoding="utf-8") as f:
+        with _open_append() as f:
             f.write(f"{datetime.datetime.now():%Y-%m-%d %H:%M:%S} {line}\n")
     except Exception:
         pass  # a broken log file must never take the voice down

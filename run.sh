@@ -16,7 +16,7 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
-# Modified by Executive Stack, 2026-09-22 (see NOTICE-EXECUTIVE-STACK.md).
+# Modified by Executive Stack, 2026-09-23 (see NOTICE-EXECUTIVE-STACK.md).
 # backtalk entrypoint — start a spoken conversation with your agent.
 # Terminal-invoked (inherits the terminal's mic permission). Ctrl-C hangs up.
 cd "$(dirname "$0")"
@@ -42,11 +42,34 @@ if pkill -f "backtalk[.]main" 2>/dev/null; then
   echo "[backtalk] replaced a previous voice session"
   sleep 1   # let the old process release mic/speaker devices
 fi
+# One pinned uv, and only that one: the Executive Stack managed copy that
+# install.sh places at UV_MANAGED, or a uv already on PATH only when it is
+# exactly the pinned version. Any other uv is refused, because the
+# lockfile was resolved and tested with this one.
+UV_PIN="0.12.18"
+UV_MANAGED="$HOME/.local/share/executive-stack/uv/uv"
+uv_is_pinned() { [ -x "$1" ] && [ "$("$1" --version 2>/dev/null | cut -d' ' -f2)" = "$UV_PIN" ]; }
+if uv_is_pinned "$UV_MANAGED"; then UV="$UV_MANAGED"
+elif command -v uv >/dev/null 2>&1 && uv_is_pinned "$(command -v uv)"; then UV="$(command -v uv)"
+else
+  echo "[backtalk] the voice line needs uv $UV_PIN and found '$(uv --version 2>/dev/null || echo none)'; refusing to launch. Run ./install.sh, which puts the pinned uv at $UV_MANAGED." >&2
+  exit 1
+fi
 # Self-repair: reconcile the environment with the COMMITTED lockfile
 # before launching (sub-second when already current). --frozen installs
 # exactly what uv.lock says and never re-resolves against PyPI, so every
 # machine on this release runs the same reviewed package set; a missing
 # package (a half-finished install, a drifted env) heals here instead of
-# crashing on import. If it fails (offline), launch anyway.
-uv sync -q --frozen 2>/dev/null || true
-exec uv run python -m backtalk.main "$@" 2> >(grep -vi "pkg_resources\|VIRTUAL_ENV" >&2)
+# crashing on import. Fails CLOSED: if the locked environment cannot be
+# verified, the voice line does not launch on whatever happens to be
+# installed. Offline with an intact environment is still a valid launch,
+# which is what the --offline retry is for (it verifies against the
+# lockfile without the network; a missing package still fails it).
+if ! "$UV" sync -q --frozen; then
+  echo "[backtalk] could not verify the locked environment online; checking offline" >&2
+  if ! "$UV" sync -q --frozen --offline; then
+    echo "[backtalk] the locked Python environment could not be verified (the uv output above says why); refusing to launch. Run ./install.sh, or ask your Executive Stack contact." >&2
+    exit 1
+  fi
+fi
+exec "$UV" run python -m backtalk.main "$@" 2> >(grep -vi "pkg_resources\|VIRTUAL_ENV" >&2)

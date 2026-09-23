@@ -15,7 +15,7 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
-# Modified by Executive Stack, 2026-09-22 (see NOTICE-EXECUTIVE-STACK.md).
+# Modified by Executive Stack, 2026-09-23 (see NOTICE-EXECUTIVE-STACK.md).
 """The ears — mic capture with VAD endpointing, transcribed in-process
 by faster-whisper. Local, free, no server, no API key.
 
@@ -74,14 +74,46 @@ def _apple_gpu_available() -> bool:
 
 
 def _mlx_repo(model_name: str) -> str:
-    """A faster-whisper model name -> its MLX conversion on the Hub.
-
-    Executive Stack note: mlx_whisper.transcribe(path_or_hf_repo=...) has
-    no revision argument, so the MLX weights cannot be pinned from here.
-    Their reviewed commits are recorded in MODELS.lock.md, and Apple
-    Silicon clients are pre-seeded from that manifest (HF_HUB_OFFLINE)
-    rather than pinned in code."""
+    """A faster-whisper model name -> its MLX conversion on the Hub."""
     return f"mlx-community/whisper-{model_name}-mlx"
+
+
+def _mlx_model_path(model_name: str) -> str:
+    """The local folder holding the MLX weights at their pinned commit.
+
+    Executive Stack change. mlx_whisper.transcribe(path_or_hf_repo=...)
+    has no revision argument: given a repository name it calls
+    huggingface_hub.snapshot_download(repo_id=...) itself with no revision
+    (mlx-whisper 0.4.3, load_models.load_model), so a client would get
+    whatever the repo's main branch held on the day it first ran. Given a
+    folder that exists, it loads that folder as-is. So the snapshot is
+    fetched HERE at the reviewed commit (config mlx_model_revisions, see
+    MODELS.lock.md) and the folder is what mlx_whisper receives.
+
+    Fails closed: no pin for this model name, or a pinned snapshot that
+    cannot be obtained (offline with an empty cache, a commit the Hub no
+    longer serves), raises instead of loading moving weights. With
+    HF_HUB_OFFLINE set, huggingface_hub serves the pinned commit from the
+    cache and refuses the network, which is exactly the pre-seed route.
+    """
+    repo = _mlx_repo(model_name)
+    revs = CFG.get("mlx_model_revisions") or {}
+    rev = str(revs.get(model_name) or "").strip()
+    if not rev:
+        raise RuntimeError(
+            f"[ears] no pinned revision for {repo} (mlx_model_revisions in "
+            f"backtalk.json); refusing to load unpinned weights on the Apple "
+            f"GPU path. See MODELS.lock.md.")
+    from huggingface_hub import snapshot_download
+    try:
+        path = snapshot_download(repo_id=repo, revision=rev)
+    except Exception as e:
+        raise RuntimeError(
+            f"[ears] could not obtain {repo} at its pinned commit "
+            f"{rev[:12]} ({type(e).__name__}: {e}); refusing to load "
+            f"unpinned weights. See MODELS.lock.md.") from e
+    log(f"[ears] mlx weights pinned to {repo}@{rev[:12]}")
+    return path
 
 
 def _stt_revision():
@@ -300,10 +332,12 @@ def warm():
         if _model is None:
             if _apple_gpu_available():
                 import mlx_whisper
-                repo = _mlx_repo(CFG["stt_model"])
+                # The pinned snapshot's local folder, never the repo name
+                # (which mlx_whisper would resolve to a moving revision).
+                repo = _mlx_model_path(CFG["stt_model"])
                 log(f"[ears] loading {CFG['stt_model']} on the Apple GPU...")
                 # This API has no separate load call: the first transcribe
-                # pulls and caches the weights. Warm on a beat of silence so
+                # loads and caches the weights. Warm on a beat of silence so
                 # the first real utterance does not pay for it.
                 mlx_whisper.transcribe(np.zeros(RATE // 10, dtype=np.float32),
                                        path_or_hf_repo=repo, language="en",

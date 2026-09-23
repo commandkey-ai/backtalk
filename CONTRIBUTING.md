@@ -1,3 +1,6 @@
+<!-- Modified by Executive Stack, 2026-09-23. See NOTICE-EXECUTIVE-STACK.md. -->
+> **This is Executive Stack's reviewed mirror of backtalk, not the upstream project.** Bugs and feature requests about the software go to the upstream repository, https://github.com/jaredrhod/backtalk, where the author below maintains it. Anything about the Executive Stack release itself (the pinned tags, the installers, the lockfile, the model pins) goes to info@executivestack.ai. The rest of this file is the upstream author's, in his words.
+
 ## How to contribute
 
 Short version: **open an issue, not a pull request.**

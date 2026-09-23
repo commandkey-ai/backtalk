@@ -1,4 +1,4 @@
-<!-- Modified by Executive Stack, 2026-09-22. See NOTICE-EXECUTIVE-STACK.md. -->
+<!-- Modified by Executive Stack, 2026-09-23. See NOTICE-EXECUTIVE-STACK.md. -->
 # backtalk (Executive Stack release)
 
 > **This is the Executive Stack pinned release** of Jared Rhodenizer's backtalk. It installs from a committed lockfile, pins its model weights (see `MODELS.lock.md`), and updates only to release tags Executive Stack has published. Support: your Executive Stack contact.
@@ -29,7 +29,7 @@ cd backtalk
 ./install.sh
 ```
 
-The installer sets up a Python environment from the committed `uv.lock` (`uv sync --frozen`, never a fresh resolution), the two local AI models (speech-to-text and the voice, at the revisions pinned in `MODELS.lock.md`), and the one system library they need. First run downloads the models (about 1 GB total); everything after is instant. Prerequisites: [Claude Code](https://claude.com/claude-code) with a Claude subscription, and `uv` (the installer offers to install the pinned version from its GitHub release asset, checked against a SHA-256 written in the script; there is no curl-pipe-sh anywhere in this release).
+The installer sets up a Python environment from the committed `uv.lock` (`uv sync --frozen`, never a fresh resolution), the two local AI models (speech-to-text and the voice, at the revisions pinned in `MODELS.lock.md`), and the one system library they need. First run downloads the models (about 1 GB total); everything after is instant. Prerequisites: [Claude Code](https://claude.com/claude-code) with a Claude subscription. `uv` is handled by the installer: it uses exactly uv 0.12.18, the version this release was resolved and tested with, installed from its GitHub release asset and checked against a SHA-256 written in the script, into `~/.local/share/executive-stack/uv/` side by side with any uv you already have (yours is never touched or used unless it is that exact version; there is no curl-pipe-sh anywhere in this release). `run.sh` refuses to launch on any other uv, and refuses to launch at all if the locked environment cannot be verified (online, or offline against an intact environment).
 
 **The easy way to configure it:** open this folder in Claude Code and say *"read backtalk.md and set me up."* The wizard picks your agent folder, your key, and your voice with you, then test-fires the whole loop.
 
@@ -45,7 +45,7 @@ Hold the key. Talk. Let go.
 
 ## Windows
 
-Windows has its own scripted installer, `install.ps1` (`install.sh` and `run.sh` are Mac and Linux). Open this folder in Claude Code and say *"read backtalk.md and set me up"*: the wizard runs `install.ps1` for you (pinned uv with a hash check, espeak-ng 1.52.0 from winget, `uv sync --frozen`, then the models), then launches with `uv run python -m backtalk.main`. The ElevenLabs key lives in the `ELEVENLABS_API_KEY` environment variable on Windows for now (Credential Manager support is planned). Hit something rough? The Windows notes in `TROUBLESHOOTING.md` carry the known quirks, and issues are welcome.
+Windows has its own scripted installer, `install.ps1` (`install.sh` and `run.sh` are Mac and Linux). Open this folder in Claude Code and say *"read backtalk.md and set me up"*: the wizard runs `install.ps1` for you (the pinned uv 0.12.18 with a hash check, placed at `%LOCALAPPDATA%\ExecutiveStack\uv\uv.exe` side by side with any uv you already have; espeak-ng 1.52.0 from winget; `uv sync --frozen`; then the models), then launches with that uv: `& "$env:LOCALAPPDATA\ExecutiveStack\uv\uv.exe" run python -m backtalk.main` (the installer prints the exact path it used). The ElevenLabs key lives in the `ELEVENLABS_API_KEY` environment variable on Windows for now (Credential Manager support is planned). Hit something rough? The Windows notes in `TROUBLESHOOTING.md` carry the known quirks; for anything about this Executive Stack release, your Executive Stack contact, and for a bug in the software itself, the upstream project (https://github.com/jaredrhod/backtalk).
 
 ## The voice
 
@@ -78,7 +78,7 @@ Speech recognition by [faster-whisper](https://github.com/SYSTRAN/faster-whisper
 
 ## Updating
 
-To update on macOS, double-click the `Update` icon setup left on your Desktop, or run `./update.sh` in this folder. On Windows, or any time, say **"update backtalk to the current Executive Stack release and tell me what changed"** to your agent, and it does the same job. Updates only ever move to a release tag Executive Stack has published (the name in `ES_RELEASE` on the mirror's `es-release` branch), never to a moving branch. Your config, your keys, and your agent's identity live outside the tracked files, so updates never touch them. Installed through fullstack-agent? `./fullstack-agent/update.sh` (macOS) updates every piece at once and prints what changed.
+To update on macOS, double-click the `Update` icon setup left on your Desktop, or run `./update.sh` in this folder (it shows what is arriving and asks before applying). On Windows, or any time, say **"update backtalk to the current Executive Stack release and tell me what changed"** to your agent, and it does the same job. Updates only ever move to a release tag Executive Stack has published (the name in `ES_RELEASE` on the mirror's `es-release` branch), never to a moving branch. Your config, your keys, and your agent's identity live outside the tracked files, so updates never touch them. Installed through fullstack-agent? `./fullstack-agent/update.sh` (macOS) updates every piece at once and prints what changed.
 
 ## The rest of it
 

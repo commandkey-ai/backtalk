@@ -15,7 +15,7 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
-# Modified by Executive Stack, 2026-09-22 (see NOTICE-EXECUTIVE-STACK.md).
+# Modified by Executive Stack, 2026-09-23 (see NOTICE-EXECUTIVE-STACK.md).
 """Configuration — backtalk.json in the repo root, merged over defaults.
 
 backtalk deliberately owns NO personality. Your agent's identity lives in
@@ -158,6 +158,18 @@ DEFAULTS = {
         "base.en":   "3d3d5dee26484f91867d81cb899cfcf72b96be6c",
         "small.en":  "d1d751a5f8271d482d14ca55d9e2deeebbae577f",
         "medium.en": "a29b04bd15381511a9af671baec01072039215e3",
+    },
+    # The same pins for the Apple Silicon path: the exact commit of each
+    # mlx-community/whisper-<name>-mlx conversion (see MODELS.lock.md).
+    # mlx_whisper resolves a repository name to the Hub's CURRENT revision
+    # by itself, so ears.py downloads the snapshot at this commit and hands
+    # it the local folder instead. A name with no entry here REFUSES to
+    # load on the Apple GPU path; nothing unpinned runs there.
+    "mlx_model_revisions": {
+        "tiny.en":   "5f4dafbb28e62a53c1b10426ff7eed36ca733bf7",
+        "base.en":   "aa0678c3466ed62c5c6114ec600a0e1f96820089",
+        "small.en":  "52a88bf6e98b114a210c21bb83e22d6e1505cb73",
+        "medium.en": "8d0335069b551e8586b8a4680674403d9417dfe4",
     },
     # The pinned commit of hexgrad/Kokoro-82M, the built-in voice. kokoro
     # 0.9.x has no revision argument of its own, so mouth.py pins its

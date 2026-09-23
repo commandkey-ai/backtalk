@@ -15,7 +15,7 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
-# Modified by Executive Stack, 2026-09-22 (see NOTICE-EXECUTIVE-STACK.md).
+# Modified by Executive Stack, 2026-09-23 (see NOTICE-EXECUTIVE-STACK.md).
 """The mouth — streaming sentence-chunked TTS, played through one
 long-lived output stream.
 
@@ -78,8 +78,9 @@ def _pin_kokoro_downloads(revision: str) -> bool:
 
     Returns True when both names were pinned. If the library layout ever
     changes so the names are not found, nothing is patched, the log says
-    so, and the reviewed commit is still recorded in MODELS.lock.md for
-    the pre-seed / HF_HUB_OFFLINE route.
+    so, and warm() REFUSES to build the pipeline: a configured pin that
+    did not take is a failure, never a silent fall-through to moving
+    weights. The reviewed commit stays recorded in MODELS.lock.md.
     """
     try:
         import kokoro.model
@@ -220,7 +221,11 @@ def warm():
                 f"voice {CFG['voice']})...")
             rev = str(CFG.get("tts_model_revision") or "").strip()
             if rev:
-                _pin_kokoro_downloads(rev)
+                if not _pin_kokoro_downloads(rev):
+                    raise RuntimeError(
+                        f"[mouth] refusing to load unpinned Kokoro weights: "
+                        f"the pin to {KOKORO_REPO}@{rev[:12]} did not apply "
+                        f"(the log line above says why; see MODELS.lock.md)")
             else:
                 log("[mouth] tts_model_revision is empty; kokoro weights "
                     "load unpinned (see MODELS.lock.md)")

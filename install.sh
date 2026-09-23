@@ -16,7 +16,7 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
-# Modified by Executive Stack, 2026-09-22 (see NOTICE-EXECUTIVE-STACK.md).
+# Modified by Executive Stack, 2026-09-23 (see NOTICE-EXECUTIVE-STACK.md).
 # backtalk installer — environment, engines, models. Run once.
 # Safe to re-run; every step skips what's already done.
 set -e
@@ -30,7 +30,15 @@ echo "== backtalk install (Executive Stack release $(tr -d '[:space:]' < ES_RELE
 # GitHub release asset whose SHA-256 is written here, and the download is
 # refused if the hash does not match. To move to a newer uv, change all
 # three of UV_VERSION and the two hashes below in the same edit.
+#
+# The pinned uv is the ONLY uv this install and run.sh ever use. It lives
+# at UV_MANAGED, side by side with whatever uv the machine already has
+# (which is never touched, never shadowed, and never used unless it is
+# exactly the pinned version). No PATH edits: every launcher calls the
+# managed copy by its absolute path.
 UV_VERSION="0.12.18"
+UV_MANAGED_DIR="$HOME/.local/share/executive-stack/uv"
+UV_MANAGED="$UV_MANAGED_DIR/uv"
 uv_expected_sha() {
   case "$1" in
     aarch64-apple-darwin)      echo "cf40e0c6a202190ccd9e0406dcfdd5b2d6668a9a5c779b17948963df32aafe5b" ;;
@@ -64,24 +72,38 @@ install_pinned_uv() {
     echo "   uv download HASH MISMATCH (expected $want, got $got). Refusing to install. Ask your Executive Stack contact."
     exit 1
   fi
-  mkdir -p "$HOME/.local/bin"
+  mkdir -p "$UV_MANAGED_DIR"
   tar -xzf "$tmp/$asset" -C "$tmp"
-  cp "$tmp/uv-$target/uv" "$tmp/uv-$target/uvx" "$HOME/.local/bin/"
-  chmod +x "$HOME/.local/bin/uv" "$HOME/.local/bin/uvx"
+  cp "$tmp/uv-$target/uv" "$tmp/uv-$target/uvx" "$UV_MANAGED_DIR/"
+  chmod +x "$UV_MANAGED_DIR/uv" "$UV_MANAGED_DIR/uvx"
   rm -rf "$tmp"
-  export PATH="$HOME/.local/bin:$PATH"
-  echo "   uv $(uv --version | cut -d' ' -f2) installed to ~/.local/bin"
-}
-if ! command -v uv >/dev/null 2>&1; then
-  echo "-- uv not found. It's the fast Python manager this uses."
-  read -r -p "   Install the pinned uv $UV_VERSION now? [Y/n] " a
-  if [ "$a" = "n" ] || [ "$a" = "N" ]; then
-    echo "   Install uv $UV_VERSION yourself and re-run."
+  if ! uv_is_pinned "$UV_MANAGED"; then
+    echo "   the installed uv does not report version $UV_VERSION. Refusing to continue. Ask your Executive Stack contact."
     exit 1
   fi
-  install_pinned_uv
+  echo "   uv $UV_VERSION installed to $UV_MANAGED_DIR"
+}
+uv_is_pinned() { [ -x "$1" ] && [ "$("$1" --version 2>/dev/null | cut -d' ' -f2)" = "$UV_VERSION" ]; }
+if uv_is_pinned "$UV_MANAGED"; then
+  UV="$UV_MANAGED"
+  echo "-- uv $UV_VERSION: the Executive Stack managed copy at $UV_MANAGED"
+elif command -v uv >/dev/null 2>&1 && uv_is_pinned "$(command -v uv)"; then
+  UV="$(command -v uv)"
+  echo "-- uv $UV_VERSION: already on PATH at $UV"
 else
-  echo "-- uv: already present ($(uv --version 2>/dev/null); this release was built with $UV_VERSION)"
+  if command -v uv >/dev/null 2>&1; then
+    echo "-- uv on PATH is '$(uv --version 2>/dev/null)', not the pinned $UV_VERSION this release was resolved and tested with."
+    echo "   Installing the pinned uv side by side at $UV_MANAGED (yours is not touched)."
+  else
+    echo "-- uv not found. It's the fast Python manager this uses."
+    read -r -p "   Install the pinned uv $UV_VERSION now? [Y/n] " a
+    if [ "$a" = "n" ] || [ "$a" = "N" ]; then
+      echo "   Install uv $UV_VERSION yourself and re-run."
+      exit 1
+    fi
+  fi
+  install_pinned_uv
+  UV="$UV_MANAGED"
 fi
 
 # --- espeak-ng (the one system library: the voice engine phonemizes
@@ -121,7 +143,7 @@ fi
 # line (uv fetches a managed build if none is present; uv verifies those
 # downloads against hashes baked into the pinned uv binary).
 echo "-- creating the environment (first run downloads ~900MB of packages)"
-uv sync -q --frozen --python 3.12
+"$UV" sync -q --frozen --python 3.12
 
 # --- prefetch the models so the first conversation doesn't wait ---
 if [ "$1" != "--no-models" ]; then
@@ -138,6 +160,8 @@ fi
 
 echo ""
 echo "== backtalk installed =="
+echo ""
+echo "uv in use: $UV (run.sh finds it by itself)"
 echo ""
 echo "Next:"
 echo "  1. Point it at your agent: edit backtalk.json (agent_dir + name),"
