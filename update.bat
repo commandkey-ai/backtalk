@@ -32,7 +32,7 @@ rem If this folder has no .git yet because it arrived as a zip, an agent
 rem can wire it up once, keeping backtalk.json. It lands on the Executive
 rem Stack release tag named in the ES_RELEASE file, never on a branch tip:
 rem   git init -b main
-rem   git remote add origin https://github.com/Executive-Stack-LLC/backtalk
+rem   git remote add origin https://github.com/ExecutiveStack/backtalk
 rem   git remote get-url origin   (must print exactly the URL above; if not, stop)
 rem   git fetch --tags origin
 rem   git show <tag>:ES_RELEASE   (must print the tag's own name; the name is
