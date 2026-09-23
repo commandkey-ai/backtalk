@@ -15,6 +15,7 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
+# Modified by Executive Stack, 2026-09-22 (see NOTICE-EXECUTIVE-STACK.md).
 """The mouth — streaming sentence-chunked TTS, played through one
 long-lived output stream.
 
@@ -54,11 +55,57 @@ from backtalk.config import CFG
 from backtalk.vlog import log
 
 KOKORO_RATE = 24000
+KOKORO_REPO = "hexgrad/Kokoro-82M"
 EL_RATE = 44100
 _SENTENCE_RE = re.compile(r"(?<=[.!?])\s+")
 
 _pipe = None
 _pipe_lock = threading.Lock()
+
+
+def _pin_kokoro_downloads(revision: str) -> bool:
+    """Pin every Kokoro weight download to one Hugging Face commit.
+
+    Executive Stack change. kokoro 0.9.x fetches config.json, the model
+    checkpoint and each voice with huggingface_hub.hf_hub_download and
+    never passes a revision, so out of the box a client machine gets
+    whatever the repo's main branch holds on the day it first runs.
+    KPipeline takes a repo_id but no revision, so the pin has to be
+    applied to the download call itself: kokoro.model and kokoro.pipeline
+    each bind the name `hf_hub_download` at import, and those two names
+    are replaced with a wrapper that adds `revision=` for KOKORO_REPO only.
+    Nothing else in the process is touched.
+
+    Returns True when both names were pinned. If the library layout ever
+    changes so the names are not found, nothing is patched, the log says
+    so, and the reviewed commit is still recorded in MODELS.lock.md for
+    the pre-seed / HF_HUB_OFFLINE route.
+    """
+    try:
+        import kokoro.model
+        import kokoro.pipeline
+        from huggingface_hub import hf_hub_download
+    except Exception as e:
+        log(f"[mouth] could not pin kokoro downloads ({e}); see MODELS.lock.md")
+        return False
+
+    def pinned(*args, **kwargs):
+        repo = kwargs.get("repo_id", args[0] if args else None)
+        if repo == KOKORO_REPO:
+            kwargs.setdefault("revision", revision)
+        return hf_hub_download(*args, **kwargs)
+
+    patched = 0
+    for mod in (kokoro.model, kokoro.pipeline):
+        if getattr(mod, "hf_hub_download", None) is hf_hub_download:
+            mod.hf_hub_download = pinned
+            patched += 1
+    if patched == 2:
+        log(f"[mouth] kokoro weights pinned to {KOKORO_REPO}@{revision[:12]}")
+        return True
+    log("[mouth] kokoro's download call was not where this release expects "
+        "it; weights NOT pinned in code. See MODELS.lock.md.")
+    return False
 
 
 def _ensure_espeak():
@@ -171,7 +218,15 @@ def warm():
             lang = (CFG["voice"] or "bm_lewis")[0]
             log(f"[mouth] loading kokoro (lang '{lang}', "
                 f"voice {CFG['voice']})...")
-            _pipe = KPipeline(lang_code=lang)
+            rev = str(CFG.get("tts_model_revision") or "").strip()
+            if rev:
+                _pin_kokoro_downloads(rev)
+            else:
+                log("[mouth] tts_model_revision is empty; kokoro weights "
+                    "load unpinned (see MODELS.lock.md)")
+            # repo_id passed explicitly: the same default kokoro would
+            # pick, minus its "defaulting repo_id" warning on every boot.
+            _pipe = KPipeline(lang_code=lang, repo_id=KOKORO_REPO)
             log("[mouth] voice ready")
     return _pipe
 

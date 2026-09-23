@@ -16,6 +16,7 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
+# Modified by Executive Stack, 2026-09-22 (see NOTICE-EXECUTIVE-STACK.md).
 # backtalk entrypoint — start a spoken conversation with your agent.
 # Terminal-invoked (inherits the terminal's mic permission). Ctrl-C hangs up.
 cd "$(dirname "$0")"
@@ -41,10 +42,11 @@ if pkill -f "backtalk[.]main" 2>/dev/null; then
   echo "[backtalk] replaced a previous voice session"
   sleep 1   # let the old process release mic/speaker devices
 fi
-# Self-repair: reconcile the environment with the shipped package list
-# before launching (sub-second when already current). --inexact keeps
-# anything the person's agent added on purpose; a missing package
-# (a half-finished install, a drifted env) heals here instead of
+# Self-repair: reconcile the environment with the COMMITTED lockfile
+# before launching (sub-second when already current). --frozen installs
+# exactly what uv.lock says and never re-resolves against PyPI, so every
+# machine on this release runs the same reviewed package set; a missing
+# package (a half-finished install, a drifted env) heals here instead of
 # crashing on import. If it fails (offline), launch anyway.
-uv sync -q --inexact 2>/dev/null || true
+uv sync -q --frozen 2>/dev/null || true
 exec uv run python -m backtalk.main "$@" 2> >(grep -vi "pkg_resources\|VIRTUAL_ENV" >&2)

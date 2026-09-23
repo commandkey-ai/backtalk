@@ -15,6 +15,7 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
+# Modified by Executive Stack, 2026-09-22 (see NOTICE-EXECUTIVE-STACK.md).
 """The ears — mic capture with VAD endpointing, transcribed in-process
 by faster-whisper. Local, free, no server, no API key.
 
@@ -73,8 +74,28 @@ def _apple_gpu_available() -> bool:
 
 
 def _mlx_repo(model_name: str) -> str:
-    """A faster-whisper model name -> its MLX conversion on the Hub."""
+    """A faster-whisper model name -> its MLX conversion on the Hub.
+
+    Executive Stack note: mlx_whisper.transcribe(path_or_hf_repo=...) has
+    no revision argument, so the MLX weights cannot be pinned from here.
+    Their reviewed commits are recorded in MODELS.lock.md, and Apple
+    Silicon clients are pre-seeded from that manifest (HF_HUB_OFFLINE)
+    rather than pinned in code."""
     return f"mlx-community/whisper-{model_name}-mlx"
+
+
+def _stt_revision():
+    """The pinned Hugging Face commit for the configured faster-whisper
+    model (config stt_model_revisions), or None when the model name has
+    no pin, in which case the Hub's current revision loads and the log
+    says so. faster-whisper hands this straight to huggingface_hub as
+    `revision=`, so a pinned name can only ever download that snapshot."""
+    revs = CFG.get("stt_model_revisions") or {}
+    rev = str(revs.get(CFG["stt_model"]) or "").strip() or None
+    if rev is None:
+        log(f"[ears] no pinned revision for stt_model {CFG['stt_model']!r}; "
+            f"loading the Hub's current revision (see MODELS.lock.md)")
+    return rev
 
 
 _mic_checked = False
@@ -291,10 +312,13 @@ def warm():
             else:
                 from faster_whisper import WhisperModel
                 want = CFG["stt_device"]
+                rev = _stt_revision()
                 log(f"[ears] loading {CFG['stt_model']} "
-                    f"({want}/{CFG['stt_compute']})...")
+                    f"({want}/{CFG['stt_compute']}"
+                    + (f", revision {rev[:12]}" if rev else "") + ")...")
                 _model = WhisperModel(CFG["stt_model"], device=want,
-                                      compute_type=CFG["stt_compute"])
+                                      compute_type=CFG["stt_compute"],
+                                      revision=rev)
                 # PROVE the device before the greeting, not at the first
                 # spoken sentence. WhisperModel CONSTRUCTS perfectly well
                 # against a GPU it cannot actually use: "auto" picks CUDA
@@ -316,7 +340,8 @@ def warm():
                         "\"stt_device\": \"cpu\" in backtalk.json to skip "
                         "this check in future.")
                     _model = WhisperModel(CFG["stt_model"], device="cpu",
-                                          compute_type=CFG["stt_compute"])
+                                          compute_type=CFG["stt_compute"],
+                                          revision=rev)
                     _probe(_model)
                 _backend = "faster-whisper"
             log(f"[ears] model ready ({_backend})")

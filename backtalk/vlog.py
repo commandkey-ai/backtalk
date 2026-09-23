@@ -15,6 +15,7 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
+# Modified by Executive Stack, 2026-09-22 (see NOTICE-EXECUTIVE-STACK.md).
 """Session log — terminal print + timestamped append to logs/backtalk.log.
 
 Exists because the hardest voice bug ever hit here (the off-by-one
@@ -28,6 +29,36 @@ import sys
 from pathlib import Path
 
 LOG_PATH = Path(__file__).resolve().parent.parent / "logs" / "backtalk.log"
+
+# Executive Stack: size-based rotation. The log holds every utterance and
+# every spoken reply, i.e. a complete conversation transcript, so it is
+# bounded instead of growing forever: when backtalk.log passes ROTATE_AT
+# bytes it becomes backtalk.log.1, .1 becomes .2, .2 becomes .3, and the
+# oldest is dropped. At most ROTATE_KEEP + 1 files, roughly 20 MB total.
+ROTATE_AT = 5 * 1024 * 1024
+ROTATE_KEEP = 3
+
+
+def _rotate_if_needed():
+    """Shift the log files down one slot once the live log is too big.
+    Checked on every write; a stat is cheap and a failure here must never
+    take the voice down, so every step is best-effort."""
+    try:
+        if LOG_PATH.stat().st_size < ROTATE_AT:
+            return
+    except OSError:
+        return
+    try:
+        oldest = LOG_PATH.with_name(f"{LOG_PATH.name}.{ROTATE_KEEP}")
+        if oldest.exists():
+            oldest.unlink()
+        for i in range(ROTATE_KEEP - 1, 0, -1):
+            src = LOG_PATH.with_name(f"{LOG_PATH.name}.{i}")
+            if src.exists():
+                src.replace(LOG_PATH.with_name(f"{LOG_PATH.name}.{i + 1}"))
+        LOG_PATH.replace(LOG_PATH.with_name(f"{LOG_PATH.name}.1"))
+    except OSError:
+        pass
 
 
 def _init_console():
@@ -69,6 +100,7 @@ def log(line: str):
         print(line.encode("ascii", "replace").decode("ascii"), flush=True)
     try:
         LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
+        _rotate_if_needed()
         # encoding pinned on purpose. The default is the platform's, which
         # on Windows is that same legacy codepage -- so the log file kept
         # its own permanently corrupted copy of every line the console had

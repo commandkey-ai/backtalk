@@ -15,6 +15,7 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
+# Modified by Executive Stack, 2026-09-22 (see NOTICE-EXECUTIVE-STACK.md).
 """Configuration — backtalk.json in the repo root, merged over defaults.
 
 backtalk deliberately owns NO personality. Your agent's identity lives in
@@ -74,6 +75,16 @@ DEFAULTS = {
     # behaves as "ask" (a headless voice session could never render
     # the terminal prompt it promised).
     "permission_mode": "ask",
+    # EXECUTIVE STACK POLICY SWITCH. False (the default on every Executive
+    # Stack install): the spoken "stop asking for permission" verb answers
+    # that auto-approve is not available on this install and changes
+    # NOTHING, in memory or in this file. A permission_mode of
+    # "bypassPermissions" written into backtalk.json by hand (or by the
+    # person's agent, deliberately) still works at launch; this switch only
+    # closes the by-voice route, so an employee cannot disable every
+    # confirmation with one sentence and have it saved as the default.
+    # Set true to restore upstream behavior.
+    "allow_voice_bypass": False,
     # Which of your agent's skills the voice session can SEE. null keeps the
     # CLI's own default (all of them). [] hides every one. A list names the
     # ones to allow.
@@ -135,6 +146,23 @@ DEFAULTS = {
     # Models: tiny.en / base.en / small.en / medium.en — small.en is the
     # accuracy/speed sweet spot on a normal machine.
     "stt_model": "small.en",
+    # EXECUTIVE STACK MODEL PINS. The exact Hugging Face commit of each
+    # speech model this release was reviewed with (see MODELS.lock.md).
+    # faster-whisper passes the one for stt_model straight to the Hub as
+    # `revision=`, so a client machine can only ever download that
+    # snapshot. A model name with no entry here loads the Hub's current
+    # revision and says so in the log. Keys are faster-whisper model
+    # names; the values are commits of Systran/faster-whisper-<name>.
+    "stt_model_revisions": {
+        "tiny.en":   "0d3d19a32d3338f10357c0889762bd8d64bbdeba",
+        "base.en":   "3d3d5dee26484f91867d81cb899cfcf72b96be6c",
+        "small.en":  "d1d751a5f8271d482d14ca55d9e2deeebbae577f",
+        "medium.en": "a29b04bd15381511a9af671baec01072039215e3",
+    },
+    # The pinned commit of hexgrad/Kokoro-82M, the built-in voice. kokoro
+    # 0.9.x has no revision argument of its own, so mouth.py pins its
+    # Hub downloads to this commit itself (see mouth._pin_kokoro_downloads).
+    "tts_model_revision": "f3ff3571791e39611d31c381e3a41a3af07b4987",
     # "auto" uses CUDA when present, otherwise CPU. int8 keeps CPU fast.
     "stt_device": "auto",
     "stt_compute": "int8",
@@ -187,10 +215,10 @@ DEFAULTS = {
     # .voice_waveform, .voice_loading_pid) — anything can watch them;
     # visualizers pair with this contract. Default: the repo root.
     "signals_dir": "",
-    # THE BAREHANDS SEAM: point this at a barehands checkout's state/
-    # folder and its on-screen ring becomes your agent's face — it
-    # breathes while idle, spins while thinking, pulses with the voice.
-    # (github.com/jaredrhod/barehands)
+    # Optional mirror of the signal bus into a second folder (upstream
+    # used it for a hands-tracking companion that the Executive Stack
+    # release does not ship). Left empty it does nothing; kept so an
+    # existing backtalk.json with the key still loads.
     "barehands_state_dir": "",
     # Sound played while the agent thinks, so a long pause never reads as
     # a dead line. The bundled one ships in assets/; a relative path

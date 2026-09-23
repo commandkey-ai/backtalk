@@ -16,24 +16,72 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
+# Modified by Executive Stack, 2026-09-22 (see NOTICE-EXECUTIVE-STACK.md).
 # backtalk installer — environment, engines, models. Run once.
 # Safe to re-run; every step skips what's already done.
 set -e
 cd "$(dirname "$0")"
 export PATH="$HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin:$PATH"
 
-echo "== backtalk install =="
+echo "== backtalk install (Executive Stack release $(tr -d '[:space:]' < ES_RELEASE 2>/dev/null)) =="
 
-# --- uv (the Python environment manager) ---
-if ! command -v uv >/dev/null 2>&1; then
-  echo "-- uv not found. It's the fast Python manager this uses."
-  read -r -p "   Install it now? [Y/n] " a
-  if [ "$a" = "n" ] || [ "$a" = "N" ]; then
-    echo "   Install uv yourself (https://docs.astral.sh/uv/) and re-run."
+# --- uv (the Python environment manager), PINNED ---
+# Executive Stack policy: no curl-pipe-sh. uv is installed from one exact
+# GitHub release asset whose SHA-256 is written here, and the download is
+# refused if the hash does not match. To move to a newer uv, change all
+# three of UV_VERSION and the two hashes below in the same edit.
+UV_VERSION="0.12.18"
+uv_expected_sha() {
+  case "$1" in
+    aarch64-apple-darwin)      echo "cf40e0c6a202190ccd9e0406dcfdd5b2d6668a9a5c779b17948963df32aafe5b" ;;
+    x86_64-apple-darwin)       echo "2e4108f5395397c8bc5d43bf83d3bdbb2d0e92b90d0efa607756be704905fa33" ;;
+    x86_64-unknown-linux-gnu)  echo "89eadd7c76fc063887959510d5ba0ab1264dfd5f1143b925ddb73021a40acf16" ;;
+    aarch64-unknown-linux-gnu) echo "afb6291f3f0a6b4521fc67b947822506c41dde5b60d2189dd8f3695b2ac8c9e7" ;;
+    *) echo "" ;;
+  esac
+}
+sha256_of() {
+  if command -v sha256sum >/dev/null 2>&1; then sha256sum "$1" | cut -d' ' -f1
+  else shasum -a 256 "$1" | cut -d' ' -f1; fi
+}
+install_pinned_uv() {
+  case "$(uname -s)-$(uname -m)" in
+    Darwin-arm64)  target="aarch64-apple-darwin" ;;
+    Darwin-x86_64) target="x86_64-apple-darwin" ;;
+    Linux-x86_64)  target="x86_64-unknown-linux-gnu" ;;
+    Linux-aarch64|Linux-arm64) target="aarch64-unknown-linux-gnu" ;;
+    *) echo "   no pinned uv build for $(uname -s)/$(uname -m). Ask your Executive Stack contact."; exit 1 ;;
+  esac
+  want="$(uv_expected_sha "$target")"
+  asset="uv-$target.tar.gz"
+  url="https://github.com/astral-sh/uv/releases/download/$UV_VERSION/$asset"
+  tmp="$(mktemp -d)"
+  echo "   downloading uv $UV_VERSION ($target) and checking its SHA-256"
+  curl -LsSf -o "$tmp/$asset" "$url"
+  got="$(sha256_of "$tmp/$asset")"
+  if [ "$got" != "$want" ]; then
+    rm -rf "$tmp"
+    echo "   uv download HASH MISMATCH (expected $want, got $got). Refusing to install. Ask your Executive Stack contact."
     exit 1
   fi
-  curl -LsSf https://astral.sh/uv/install.sh | sh
+  mkdir -p "$HOME/.local/bin"
+  tar -xzf "$tmp/$asset" -C "$tmp"
+  cp "$tmp/uv-$target/uv" "$tmp/uv-$target/uvx" "$HOME/.local/bin/"
+  chmod +x "$HOME/.local/bin/uv" "$HOME/.local/bin/uvx"
+  rm -rf "$tmp"
   export PATH="$HOME/.local/bin:$PATH"
+  echo "   uv $(uv --version | cut -d' ' -f2) installed to ~/.local/bin"
+}
+if ! command -v uv >/dev/null 2>&1; then
+  echo "-- uv not found. It's the fast Python manager this uses."
+  read -r -p "   Install the pinned uv $UV_VERSION now? [Y/n] " a
+  if [ "$a" = "n" ] || [ "$a" = "N" ]; then
+    echo "   Install uv $UV_VERSION yourself and re-run."
+    exit 1
+  fi
+  install_pinned_uv
+else
+  echo "-- uv: already present ($(uv --version 2>/dev/null); this release was built with $UV_VERSION)"
 fi
 
 # --- espeak-ng (the one system library: the voice engine phonemizes
@@ -67,10 +115,13 @@ if [ "$(uname -s)" = "Linux" ] && ! ldconfig -p 2>/dev/null | grep -q portaudio;
   fi
 fi
 
-# --- the Python environment ---
+# --- the Python environment, from the COMMITTED lockfile ---
+# --frozen installs exactly what uv.lock says and never re-resolves
+# against PyPI. --python 3.12 keeps every machine on the same interpreter
+# line (uv fetches a managed build if none is present; uv verifies those
+# downloads against hashes baked into the pinned uv binary).
 echo "-- creating the environment (first run downloads ~900MB of packages)"
-uv venv .venv -q 2>/dev/null || true
-uv pip install --python .venv/bin/python -q -e .
+uv sync -q --frozen --python 3.12
 
 # --- prefetch the models so the first conversation doesn't wait ---
 if [ "$1" != "--no-models" ]; then

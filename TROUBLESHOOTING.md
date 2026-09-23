@@ -1,10 +1,11 @@
+<!-- Modified by Executive Stack, 2026-09-22. See NOTICE-EXECUTIVE-STACK.md. -->
 # Troubleshooting
 
 Written for humans AND for AI assistants. If you're an AI helping someone debug backtalk: read this whole file first, then `logs/backtalk.log`; every load-bearing event (what was heard, what was said, interrupts, engine fallbacks, session rebuilds) is in there. Diagnose from the log, not from guesses.
 
 ## Quick fixes
 
-- **`ModuleNotFoundError: No module named 'claude_agent_sdk'` (or any missing module) at launch**: backtalk's Python packages never finished installing, or the environment drifted. From the backtalk folder run `uv sync`, which installs everything from the shipped package list, then launch again. (Launchers updated after this was found in the field run the repair automatically; if yours predates that, update backtalk.) If `uv sync` itself errors, run `uv venv .venv` then `uv pip install -e .` instead.
+- **`ModuleNotFoundError: No module named 'claude_agent_sdk'` (or any missing module) at launch**: backtalk's Python packages never finished installing, or the environment drifted. From the backtalk folder run `uv sync --frozen`, which installs exactly what the committed `uv.lock` says (never a fresh resolution), then launch again. (The launchers run the repair automatically.) If `uv sync --frozen` itself errors, the output says why; do not fall back to `uv pip install -e .`, which would resolve unreviewed package versions. Ask your Executive Stack contact if it will not install.
 - **The greeting speaks, then it goes idle and ignores the key (open mic too)**: the step right after the greeting is connecting to Claude Code, the brain, and that connection failed or hung. It is the one startup step that needs a signed-in Claude Code, internet, and available plan usage. The voice line now says this failure out loud and the window stays open with the error; the ladder to fix it: run `claude` in a terminal and confirm a session opens signed in, check your internet, check your plan has usage left. The log agrees: `logs/backtalk.log` ending at "connecting the brain..." with no "brain warm" after it is exactly this failure. Your browser choice has nothing to do with it; the visualizer only displays.
 - **Nothing happens when I hold the key (macOS)**: the terminal app needs **Input Monitoring** permission: System Settings → Privacy & Security → Input Monitoring → add your terminal (Terminal, iTerm, etc.), then restart the terminal. The mic prompt is separate and appears on first recording.
 - **Mic permission never appeared / recording is silent**: launch from a normal terminal window, not a background service or launcher daemon: the process inherits the *terminal's* microphone permission. Check the input device: `python -m sounddevice` lists them.
@@ -16,23 +17,24 @@ Written for humans AND for AI assistants. If you're an AI helping someone debug 
 - **First reply after launch is slow**: that's the one-time prompt-cache toll, mostly hidden behind the greeting. Warm turns are the real speed.
 - **It starts cold and forgets the last conversation after a restart**: that is the default (a fresh session every launch is predictable). Want it to pick up where it left off? Tell your agent to set `"resume_last_session": true` in backtalk.json. From then on every launch reattaches to the previous conversation, and a stale saved session falls back to fresh with a log line instead of breaking the launch. The saved conversation lives on your machine as a Claude Code transcript (kept for 30 days from last use by default), and a long conversation never dies from length: it compacts itself automatically, older turns becoming a summary while recent ones stay verbatim. Start over any time by saying "clear the session."
 - **The voice talks too fast or too slow**: the built-in voice has a pace dial, `"speed"` in backtalk.json. 1.0 is native, 1.15 is brisker, 0.9 is slower. ElevenLabs pace lives in the `master` chain's atempo value instead.
-- **Updating, or an update that complains about local changes**: run `./update.sh` in this folder (macOS), or double-click the `Update` icon if setup left one. On Windows, ask your agent: "pull the latest backtalk and tell me what changed." The updater shows what changed before applying it and can never touch your `backtalk.json`. If an older updater said "couldn't fast-forward" or mentioned local changes, run `./update.sh` once and it clears: it moves your config out of git's sight and everything flows after.
+- **Updating, or an update that complains about local changes**: run `./update.sh` in this folder (macOS), or double-click the `Update` icon if setup left one. On Windows, ask your agent: "update backtalk to the current Executive Stack release and tell me what changed." The updater only ever moves to the release tag Executive Stack published (the name in `ES_RELEASE` on the mirror's `es-release` branch), never to a moving branch; it shows what changed before applying it and can never touch your `backtalk.json`. If an older updater said "couldn't fast-forward" or mentioned local changes, run `./update.sh` once and it clears: it moves your config out of git's sight and everything flows after.
 - **The voice sounds robotic**: you're hearing Kokoro's base register, or the wrong voice for the language. Try `bm_george`, `bm_daniel`, `am_michael`, `af_heart`. Remember the first letter must match the language pipeline (`b…` British, `a…` American).
 - **`espeak` errors when the voice loads**: the system `espeak-ng` package is missing (the pip-bundled build inside the voice engine is broken (known upstream); the system package is the supported path). `brew install espeak-ng` / `sudo apt install espeak-ng`, then re-run.
 - **Choppy or slow-motion audio on a weak machine**: lower `stt_model` to `base.en` or `tiny.en`. The playback side already buffers 0.75s ahead specifically so slow machines don't garble.
 - **Two voices answering at once**: two copies are running. `./run.sh` kills the previous instance on launch; if you started one some other way, kill it. One body, one mouth.
 - **Spotify stays quiet after it stops talking**: the restore is debounced ~0.5s; if the process was force-killed mid-speech the restore can be lost. It self-corrects on the next duck, or nudge the volume by hand.
 - **ElevenLabs sounds worse than their website**: their site previews are mastered demo clips; the raw API never matches them. The shipped `master` ffmpeg chain closes the gap; make sure `ffmpeg` is installed, and don't set the style parameter or switch to the multilingual model for English (both make delivery slow and dull).
-- **It started asking permission out loud after an update**: that is the new default (safe by default, auto-approve by choice). Say "stop asking for permission" in a voice session and confirm for an immediate, saved flip; or tell your agent to set `"permission_mode": "bypassPermissions"`, which takes effect the next time the voice line starts. The agent writes the config, never you.
-- **It asked permission, then said "no answer, so I didn't do it"**: the spoken ask waits about 75 seconds, then treats silence as no. Hold the key and answer with an exact "yes" (or "go ahead", "approved") to approve, "details" to hear the exact command it wants to run, or anything else to deny; a denial's words are passed back to the agent as the reason, so spoken redirections work. Done with the checks entirely? "Stop asking for permission" and "turn off the permission prompts" both work, with a confirm.
-- **A voice command didn't trigger**: console phrases match exactly, spoken alone: "clear the session", "compact the session", "switch to the deep model", "back to the fast model", "set effort to low" (or medium, high, max), "usage report", "go hands free" and "push to talk mode" (the microphone), "stop asking for permission" and "start asking again" (approvals). Extra words around them make a normal sentence for the agent instead. That guard is deliberate.
-- **"Hands-free" vs auto-approve, because the words matter**: hands-free is the MICROPHONE (always listening, no button; "go hands free" / "push to talk mode"). Auto-approve is PERMISSIONS (act without asking; "stop asking for permission" / "start asking again"). They are separate settings and switch separately.
+- **It started asking permission out loud after an update**: that is the default (safe by default, auto-approve by choice). On an Executive Stack install the spoken "stop asking for permission" switch is closed (`allow_voice_bypass` is false): saying it gets a spoken "not available on this install" and changes nothing. Auto-approve, if your Executive Stack contact agrees it belongs on this machine, is set by writing `"permission_mode": "bypassPermissions"` into `backtalk.json` and takes effect the next time the voice line starts. The agent writes the config, never you.
+- **It asked permission, then said "no answer, so I didn't do it"**: the spoken ask waits about 75 seconds, then treats silence as no. Hold the key and answer with an exact "yes" (or "go ahead", "approved") to approve, "details" to hear the exact command it wants to run, or anything else to deny; a denial's words are passed back to the agent as the reason, so spoken redirections work.
+- **The log, and how long it is kept**: `logs/backtalk.log` records every spoken and typed line in both directions, every permission ask, and every engine event, in plain text on this machine. It rotates by size: at 5 MB it becomes `backtalk.log.1` (then `.2`, `.3`) and the oldest copy is deleted, so the folder never holds more than about 20 MB or four files. Nothing in it leaves the machine, and anyone with an account on the machine can read it; delete the folder any time you want a clean slate.
+- **A voice command didn't trigger**: console phrases match exactly, spoken alone: "clear the session", "compact the session", "switch to the deep model", "back to the fast model", "set effort to low" (or medium, high, max), "usage report", "go hands free" and "push to talk mode" (the microphone), "start asking again" (approvals; "stop asking for permission" is answered but disabled on this install unless `allow_voice_bypass` is true). Extra words around them make a normal sentence for the agent instead. That guard is deliberate.
+- **"Hands-free" vs auto-approve, because the words matter**: hands-free is the MICROPHONE (always listening, no button; "go hands free" / "push to talk mode"). Auto-approve is PERMISSIONS (act without asking; set in the config on an Executive Stack install, "start asking again" always works by voice). They are separate settings and switch separately.
 - **It answers my previous question instead of the one I just asked**: this is the interrupt-desync bug this codebase specifically armors against (`brain.reset_turn`); if you EVER see it, something has changed in the SDK. Grab `logs/backtalk.log` and file an issue; the log will show whether the stale-turn drain ran.
 
 ## Windows notes
 
-- **No install.sh or run.sh:** they are Mac and Linux shell scripts. The wizard (`backtalk.md`) performs the install natively on Windows; launch with `uv run python -m backtalk.main`.
-- **espeak-ng:** install it with winget or the official installer. backtalk looks for `libespeak-ng.dll` in the usual Program Files locations; if yours lives elsewhere, set `PHONEMIZER_ESPEAK_LIBRARY` to the dll's full path.
+- **No install.sh or run.sh:** they are Mac and Linux shell scripts. On Windows the install is `install.ps1` in this folder (`powershell -ExecutionPolicy Bypass -File .\install.ps1`), which the wizard (`backtalk.md`) runs for you: pinned uv with a hash check, espeak-ng 1.52.0 from winget, `uv sync --frozen`, then the models. Launch with `uv run python -m backtalk.main`.
+- **espeak-ng:** `install.ps1` installs it (`winget install --id eSpeak-NG.eSpeak-NG -e --version 1.52.0`). backtalk looks for `libespeak-ng.dll` in the usual Program Files locations; if yours lives elsewhere, set `PHONEMIZER_ESPEAK_LIBRARY` to the dll's full path.
 - **The ElevenLabs key** lives in the `ELEVENLABS_API_KEY` environment variable for now; Credential Manager support is planned.
 - **One copy at a time:** run.sh's single-instance guard is Mac and Linux; on Windows, close the old window before starting a new one, or two voices answer one mic.
 - **Speed:** `stt_device: "auto"` uses CUDA when present and CPU otherwise; CPU with `small.en` is plenty fast on a normal machine.
@@ -43,7 +45,7 @@ That sound is the safety net working: on any ElevenLabs failure, backtalk falls 
 
 1. **Out of credits.** The free tier's monthly allowance goes fast in real conversation. Check usage on your ElevenLabs dashboard; the starter plan fixes it.
 2. **The key isn't reachable.** The keychain item is `backtalk-elevenlabs` (macOS/Linux); on Windows it's the `ELEVENLABS_API_KEY` environment variable, which only newly opened programs can see, so restart the voice line from a fresh window after setting it.
-3. **`ffmpeg` missing.** Run `ffmpeg -version`; if that fails, install it (`brew install ffmpeg` / `apt install ffmpeg` / `winget install Gyan.FFmpeg`).
+3. **`ffmpeg` missing.** Run `ffmpeg -version`; if that fails, install it (`brew install ffmpeg` / `apt install ffmpeg` / `winget install --id Gyan.FFmpeg -e --version 9.0.2`). ffmpeg is only needed for the ElevenLabs voice.
 4. **No internet.** The built-in voice covers you until it's back; nothing to fix in backtalk.
 
 ## Hands-free listening: the tradeoff
@@ -59,12 +61,14 @@ hold key -> ears.record_held (sounddevice, 16kHz int16)
                               cwd = agent_dir, streams sentences)
          -> mouth.say_chunk (kokoro in-process -> one long-lived
                              OutputStream; ElevenLabs optional)
-signals.py mirrors state to .voice_* files (+ optional barehands state/)
+signals.py mirrors state to .voice_* files
 permission_mode "ask": gated tools pause the turn and route to a spoken
                        yes/no (main.make_permission_gate). The LIVE
-                       auto-approve switch is a gate flag; a session
-                       BOOTED in bypassPermissions is real SDK bypass
-                       and never consults the gate. The mic mode
+                       auto-approve switch is a gate flag, and on an
+                       Executive Stack install the spoken route into it
+                       is closed (config allow_voice_bypass false); a
+                       session BOOTED in bypassPermissions is real SDK
+                       bypass and never consults the gate. The mic mode
                        (_MIC, ptt/open) is a separate axis: one loop,
                        the open mic joins the wait-set in "open" mode,
                        and the talk key works in both
@@ -87,5 +91,5 @@ Three land mines with warning signs on them; do not "simplify" these away:
 5. Ask something that needs a tool ("what's in my notes about X") → it speaks filler within a couple of seconds, then the answer.
 6. Type a message in the terminal → spoken reply, same conversation.
 7. Say "usage report" → it speaks turns and tokens (plus cost when the API reports one).
-8. In ask mode: request a small file write → the spoken permission check plays → "yes" proceeds, and a second attempt answered "no" stands down.
+8. In ask mode: request a small file write → the spoken permission check plays → "yes" proceeds, and a second attempt answered "no" stands down. Say "stop asking for permission" → it answers that auto-approve by voice is not available on this install, and the next gated action still asks.
 9. Say "goodbye <name>" → sign-off plays, process exits, music restores.
