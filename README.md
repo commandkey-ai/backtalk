@@ -12,7 +12,7 @@ The hearing and the voice run local: free, offline models on your machine, no vo
 ## What it does
 
 - **Hold a key, talk, release.** Your words are transcribed locally and handed to a live Claude Code session. The reply is spoken sentence by sentence as it's generated, with first audio in about 1 to 2 seconds on warm turns. Prefer no button at all? **Hands-free listening** is one spoken sentence away ("go hands free"), and the key keeps working there as your interrupt.
-- **It's YOUR agent talking.** The session runs in the folder whose CLAUDE.md defines your assistant: same name, same personality, same memory as your terminal sessions. backtalk has no personality of its own; it's a mouth and ears for whoever you already have. (No agent yet? The [ai-memory-vault](https://github.com/ES-MIRROR-ORG/ai-memory-vault) build ships with a professional default identity, ready to use.)
+- **It's YOUR agent talking.** The session runs in the folder whose CLAUDE.md defines your assistant: same name, same personality, same memory as your terminal sessions. backtalk has no personality of its own; it's a mouth and ears for whoever you already have. (No agent yet? The [ai-memory-vault](https://github.com/Executive-Stack-LLC/ai-memory-vault) build ships with a professional default identity, ready to use.)
 - **Interrupt it.** Press the key while it's talking and it shuts up and listens. No headphones needed, because the mic only opens while you hold the key, so it never hears the speakers.
 - **Type instead whenever you want.** Typing in the terminal is the same conversation, and the reply is still spoken.
 - **It asks before it acts, in plain words.** When your agent wants to do something real, it asks out loud the way a person would ("I want to change a note in your vault called Recipes") and waits. An exact spoken yes approves; "details" reads you the exact command; anything else denies, with your words passed back as the reason, so "no, put that in drafts instead" actually steers it. Most read-only work passes without interrupting. On an Executive Stack install the spoken "stop asking for permission" switch is closed by default (`allow_voice_bypass` in the config): saying it gets a polite "not available on this install" and changes nothing. Auto-approve, where it belongs on a machine, is set in the config file by your agent, and takes effect at the next launch.
@@ -24,7 +24,7 @@ The hearing and the voice run local: free, offline models on your machine, no vo
 ## Install
 
 ```
-git clone --branch es-2026.09.22-r1 --depth 1 https://github.com/ES-MIRROR-ORG/backtalk
+git clone --branch es-2026.09.23-r1 --depth 1 https://github.com/Executive-Stack-LLC/backtalk
 cd backtalk
 ./install.sh
 ```
@@ -33,7 +33,7 @@ The installer sets up a Python environment from the committed `uv.lock` (`uv syn
 
 **The easy way to configure it:** open this folder in Claude Code and say *"read backtalk.md and set me up."* The wizard picks your agent folder, your key, and your voice with you, then test-fires the whole loop.
 
-**Already in a Claude Code session with your agent?** One sentence does the whole install: *"clone https://github.com/ES-MIRROR-ORG/backtalk.git at tag es-2026.09.22-r1, then read backtalk/backtalk.md and set me up."* Your agent runs the installer and the wizard for you.
+**Already in a Claude Code session with your agent?** One sentence does the whole install: *"clone https://github.com/Executive-Stack-LLC/backtalk.git at tag es-2026.09.23-r1, then read backtalk/backtalk.md and set me up."* Your agent runs the installer and the wizard for you.
 
 **The manual way:** copy `backtalk.json.example` to `backtalk.json` (your copy is untracked, so updates never touch it), then edit it. Point `agent_dir` at the folder whose CLAUDE.md is your agent, set `name` to your agent's name, pick a `ptt_key`. Then:
 
@@ -59,9 +59,9 @@ Two engines, and the setup wizard offers you both instead of quietly defaulting.
 
 backtalk writes tiny state files while it listens, thinks, and speaks, so anything can watch them and react in real time.
 
-- **[ai-visualizer](https://github.com/ES-MIRROR-ORG/ai-visualizer)** is the matching face: four full-screen visualizers, including the living circuit board. Point its `bus_dir` at this folder (or set `signals_dir` here to its folder) and it performs your actual conversation, idling, listening, thinking, and speaking along with the voice.
+- **[ai-visualizer](https://github.com/Executive-Stack-LLC/ai-visualizer)** is the matching face: four full-screen visualizers, including the living circuit board. Point its `bus_dir` at this folder (or set `signals_dir` here to its folder) and it performs your actual conversation, idling, listening, thinking, and speaking along with the voice.
 
-Mind ([ai-memory-vault](https://github.com/ES-MIRROR-ORG/ai-memory-vault)), mouth (this), face (ai-visualizer).
+Mind ([ai-memory-vault](https://github.com/Executive-Stack-LLC/ai-memory-vault)), mouth (this), face (ai-visualizer).
 
 ## The fine print that matters
 
@@ -82,7 +82,7 @@ To update on macOS, double-click the `Update` icon setup left on your Desktop, o
 
 ## The rest of it
 
-A voice is better with a face and a memory. The visualizer performs the conversation on screen while you talk, and the memory vault is what your agent actually speaks from, so it remembers you between sessions. [fullstack-agent](https://github.com/ES-MIRROR-ORG/fullstack-agent) installs the memory, the voice, and the face, and wires them together for you.
+A voice is better with a face and a memory. The visualizer performs the conversation on screen while you talk, and the memory vault is what your agent actually speaks from, so it remembers you between sessions. [fullstack-agent](https://github.com/Executive-Stack-LLC/fullstack-agent) installs the memory, the voice, and the face, and wires them together for you.
 
 ## Support
 

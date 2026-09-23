@@ -3,7 +3,7 @@
 This is a **modified version** of `backtalk` by Jared Rhodenizer (upstream: https://github.com/jaredrhod/backtalk), prepared by **Executive Stack** and dated **2026-09-22**.
 
 - Based on upstream commit: `84b3a6cd321060cabb74aad6ebe794621cf99bd3` (upstream author `jaredrhod`, dated 2026-08-30).
-- Executive Stack release: `es-2026.09.22-r1` (the name in `ES_RELEASE`), on branch `es-release`.
+- Executive Stack release: `es-2026.09.23-r1` (the name in `ES_RELEASE`), on branch `es-release`.
 - License: unchanged, GNU Affero General Public License v3.0 or later. The `LICENSE` file, every copyright line, and every `SPDX-License-Identifier` header are intact. Source for this modified version is the mirror repository itself.
 - Each modified source file carries a "Modified by Executive Stack, 2026-09-22" line near its SPDX header (or an HTML comment at the top of Markdown files). Files added by Executive Stack say "Added by Executive Stack".
 - Not included on purpose: a local, uncommitted change on the build machine that lowered the playback prebuffer from 0.75 s to 0.25 s. This release keeps upstream's 0.75 s (`backtalk/mouth.py`, `_play_stream`).

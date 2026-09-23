@@ -1,5 +1,5 @@
 <!-- Added by Executive Stack, 2026-09-22. See NOTICE-EXECUTIVE-STACK.md. -->
-# Model weights manifest (Executive Stack release es-2026.09.22-r1)
+# Model weights manifest (Executive Stack release es-2026.09.23-r1)
 
 backtalk downloads about 1 GB of model weights from the Hugging Face Hub on first run. Upstream fetched whatever each repository's `main` branch held that day. This release pins every weight to the exact Hub commit it was reviewed with, listed here, and says plainly which pins are enforced in code and which are not.
 

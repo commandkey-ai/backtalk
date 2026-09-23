@@ -8,7 +8,7 @@ author: Jared Rhodenizer (@jaredrhod)
 <!-- Modified by Executive Stack, 2026-09-22. See NOTICE-EXECUTIVE-STACK.md. -->
 # backtalk: setup
 
-By **Jared Rhodenizer** (@jaredrhod) · upstream: github.com/jaredrhod/backtalk · this copy: the Executive Stack pinned release (github.com/ES-MIRROR-ORG/backtalk, release named in `ES_RELEASE`)
+By **Jared Rhodenizer** (@jaredrhod) · upstream: github.com/jaredrhod/backtalk · this copy: the Executive Stack pinned release (github.com/Executive-Stack-LLC/backtalk, release named in `ES_RELEASE`)
 
 You are reading a system builder file. You, an AI assistant, will follow it to set up backtalk for the person who opened it. Do not summarize this file. Do not describe it. Execute it.
 
@@ -32,7 +32,7 @@ Ask: **"Do you already have a Claude Code agent, a folder with a CLAUDE.md that 
 Never default `agent_dir` to whatever folder Claude Code happens to be running in: an unrelated project is not an agent, and wiring the voice to one gives the person a voice with no one behind it. If there is no real agent folder, use one of the two paths below.
 
 - **Yes:** get the folder's path. That's `agent_dir`. Ask the agent's name for `name` (it builds the quit phrases, "goodbye <name>" hangs up, and labels the log).
-- **No:** point them at **ai-memory-vault** (github.com/ES-MIRROR-ORG/ai-memory-vault, at the release named in this repo's `ES_RELEASE`), the full build that creates an agent with persistent memory, and it ships with a ready-made professional personality they can keep, adjust, or replace. Offer to pause here while they run that first (it's the better order), or set `agent_dir` to a folder of their choice with a minimal CLAUDE.md you write together now (a name, a role, a few lines of personality) as a starter.
+- **No:** point them at **ai-memory-vault** (github.com/Executive-Stack-LLC/ai-memory-vault, at the release named in this repo's `ES_RELEASE`), the full build that creates an agent with persistent memory, and it ships with a ready-made professional personality they can keep, adjust, or replace. Offer to pause here while they run that first (it's the better order), or set `agent_dir` to a folder of their choice with a minimal CLAUDE.md you write together now (a name, a role, a few lines of personality) as a starter.
 
 ## Phase 3: The key and the voice
 
@@ -55,7 +55,7 @@ Never default `agent_dir` to whatever folder Claude Code happens to be running i
 Ask about each, configure what they want:
 
 - **A face:** a companion reads the signal bus this repo writes.
-  - **ai-visualizer** (github.com/ES-MIRROR-ORG/ai-visualizer, same release tag): four full-screen faces including the circuit board. Either set `signals_dir` here to that repo's folder, or set `bus_dir` there to this folder. One direction, not both.
+  - **ai-visualizer** (github.com/Executive-Stack-LLC/ai-visualizer, same release tag): four full-screen faces including the circuit board. Either set `signals_dir` here to that repo's folder, or set `bus_dir` there to this folder. One direction, not both.
   If they do not have it, one sentence: "there is a companion repo that gives it a face on screen, for later if you want."
 - **Extra folders:** anything beyond `agent_dir` the agent should reach in voice sessions (a notes vault, a projects folder) goes in `extra_dirs`.
 - **Permissions (ask which mode, then YOU write their choice).** The default is `"ask"`: when the agent wants a gated action mid-conversation, it asks OUT LOUD in plain words (never paths or command syntax; "details" reads the literal form on request) and waits; an exact spoken yes approves, any other answer denies and becomes the reason it passes back; silence for about 75 seconds means no; most read-only work passes without asking. The first ask of a session mentions the off switch by name. Explain that, then offer the alternative honestly: `"bypassPermissions"` is fully hands-free, which is smoother and also means the agent can act on a mistake without a checkpoint. Call the hands-free-of-permissions mode by its real name, **auto-approve**, and never "hands-free" (that word belongs to the microphone). Ask which they want and write it into `backtalk.json` yourself. Tell them it is never welded shut: they can tell their agent to change it in any session (it takes effect at the next launch), and "start asking again" inside a voice session flips back to asking immediately. On an Executive Stack install the spoken switch INTO auto-approve ("stop asking for permission") is disabled by default (`allow_voice_bypass` false in the config): saying it gets a polite "not available on this install" and nothing changes. Say that plainly, once.
@@ -93,7 +93,7 @@ They have a voice now, and they just heard it work. Before you hand over, tell t
 
 **Two honest paths, and say which one fits them:**
 
-1. **They want ONE more piece and nothing else.** Fastest route: say the sentence to you, right here, right now. Each repo installs from one line, for example *"clone https://github.com/ES-MIRROR-ORG/ai-visualizer.git at tag es-2026.09.22-r1, then read ai-visualizer/ai-visualizer.md and set me up."* Always the Executive Stack mirror, always the release tag named in this repo's `ES_RELEASE`, never a branch tip. You do it in this session and they are done.
+1. **They want ONE more piece and nothing else.** Fastest route: say the sentence to you, right here, right now. Each repo installs from one line, for example *"clone https://github.com/Executive-Stack-LLC/ai-visualizer.git at tag es-2026.09.23-r1, then read ai-visualizer/ai-visualizer.md and set me up."* Always the Executive Stack mirror, always the release tag named in this repo's `ES_RELEASE`, never a branch tip. You do it in this session and they are done.
 2. **They want the pieces WIRED TOGETHER, plus the Desktop shortcuts.** That is what the full installer is for. It finds what they already have, keeps it exactly where it is, adds only what is missing, and connects everything. It never duplicates a piece they already use and it never deletes anything they built.
 
 **If they choose the installer, be precise about how it runs, because this trips people up:** it has to start in a NEW terminal window (PowerShell on Windows), not inside this session. That is not a technicality: the installer only becomes the installer when it opens in its own folder, and it will interview them from scratch about which pieces they want.
@@ -102,12 +102,12 @@ Give them the command for their machine:
 
 Mac and Linux:
 ```
-mkdir -p ~/my-agent && cd ~/my-agent && git clone --branch es-2026.09.22-r1 --depth 1 https://github.com/ES-MIRROR-ORG/fullstack-agent && cd fullstack-agent && claude "set me up"
+mkdir -p ~/my-agent && cd ~/my-agent && git clone --branch es-2026.09.23-r1 --depth 1 https://github.com/Executive-Stack-LLC/fullstack-agent && cd fullstack-agent && claude "set me up"
 ```
 
 Windows (PowerShell; the `$h` value is the release zip's SHA-256 from the Executive Stack release manifest, which their Executive Stack contact supplies with the command):
 ```
-$t="es-2026.09.22-r1"; $h="ES-MIRROR-FSA-ZIP-SHA256"; $d="$env:USERPROFILE\.local\bin"; if (Test-Path "$d\claude.exe") { $env:Path="$d;$env:Path" }; New-Item -ItemType Directory -Force -Path $HOME\my-agent | Out-Null; cd $HOME\my-agent; if (-not (Test-Path fullstack-agent\fullstack-agent.md)) { Invoke-WebRequest "https://github.com/ES-MIRROR-ORG/fullstack-agent/releases/download/$t/fullstack-agent-$t.zip" -OutFile fsa.zip; if ((Get-FileHash fsa.zip -Algorithm SHA256).Hash -ne $h) { Remove-Item fsa.zip; throw "download hash mismatch: refusing to install" }; Expand-Archive fsa.zip . -Force; New-Item -ItemType Directory -Force -Path fullstack-agent | Out-Null; Get-ChildItem "fullstack-agent-$t" -Force | Copy-Item -Destination fullstack-agent -Recurse -Force; Remove-Item "fullstack-agent-$t" -Recurse -Force; Remove-Item fsa.zip }; cd fullstack-agent; if (Get-Command claude -ErrorAction SilentlyContinue) { claude "set me up" } else { Write-Output "Claude Code is not installed yet. Install it first from https://claude.com/claude-code then paste this again." }
+$t="es-2026.09.23-r1"; $h="ES-MIRROR-FSA-ZIP-SHA256"; $d="$env:USERPROFILE\.local\bin"; if (Test-Path "$d\claude.exe") { $env:Path="$d;$env:Path" }; New-Item -ItemType Directory -Force -Path $HOME\my-agent | Out-Null; cd $HOME\my-agent; if (-not (Test-Path fullstack-agent\fullstack-agent.md)) { Invoke-WebRequest "https://github.com/Executive-Stack-LLC/fullstack-agent/releases/download/$t/fullstack-agent-$t.zip" -OutFile fsa.zip; if ((Get-FileHash fsa.zip -Algorithm SHA256).Hash -ne $h) { Remove-Item fsa.zip; throw "download hash mismatch: refusing to install" }; Expand-Archive fsa.zip . -Force; New-Item -ItemType Directory -Force -Path fullstack-agent | Out-Null; Get-ChildItem "fullstack-agent-$t" -Force | Copy-Item -Destination fullstack-agent -Recurse -Force; Remove-Item "fullstack-agent-$t" -Recurse -Force; Remove-Item fsa.zip }; cd fullstack-agent; if (Get-Command claude -ErrorAction SilentlyContinue) { claude "set me up" } else { Write-Output "Claude Code is not installed yet. Install it first from https://claude.com/claude-code then paste this again." }
 ```
 
 Tell them what to expect: a fresh Claude Code session opens with the installer already talking. It asks their name, who their agent should be, and which pieces they want. Anything they already have gets found and kept. Their voice config gets found and kept, and the face gets pointed at the status files this install already writes.
