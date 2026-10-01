@@ -24,7 +24,7 @@ The hearing and the voice run local: free, offline models on your machine, no vo
 ## Install
 
 ```
-git clone --branch es-2026.10.01-r3 --depth 1 https://github.com/commandkey-ai/backtalk
+git clone --branch es-2026.10.04-r4 --depth 1 https://github.com/commandkey-ai/backtalk
 cd backtalk
 ./install.sh
 ```
@@ -33,7 +33,7 @@ The installer sets up a Python environment from the committed `uv.lock` (`uv syn
 
 **The easy way to configure it:** open this folder in Claude Code and say *"read backtalk.md and set me up."* The wizard picks your agent folder, your key, and your voice with you, then test-fires the whole loop.
 
-**Already in a Claude Code session with your agent?** One sentence does the whole install: *"clone https://github.com/commandkey-ai/backtalk.git at tag es-2026.10.01-r3, then read backtalk/backtalk.md and set me up."* Your agent runs the installer and the wizard for you.
+**Already in a Claude Code session with your agent?** One sentence does the whole install: *"clone https://github.com/commandkey-ai/backtalk.git at tag es-2026.10.04-r4, then read backtalk/backtalk.md and set me up."* Your agent runs the installer and the wizard for you.
 
 **The manual way:** copy `backtalk.json.example` to `backtalk.json` (your copy is untracked, so updates never touch it), then edit it. Point `agent_dir` at the folder whose CLAUDE.md is your agent, set `name` to your agent's name, pick a `ptt_key`. Then:
 

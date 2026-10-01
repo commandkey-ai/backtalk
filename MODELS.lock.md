@@ -1,5 +1,5 @@
 <!-- Added by CommandKey AI, 2026-09-22; revised 2026-09-23. See NOTICE-COMMANDKEY.md. -->
-# Model weights manifest (CommandKey AI release es-2026.10.01-r3)
+# Model weights manifest (CommandKey AI release es-2026.10.04-r4)
 
 backtalk downloads about 1 GB of model weights from the Hugging Face Hub on first run. Upstream fetched whatever each repository's `main` branch held that day. This release pins every weight to the exact Hub commit it was reviewed with, listed here, and every pin is enforced in code: a pin that cannot be applied, or a pinned snapshot that cannot be obtained, stops the voice line instead of loading moving weights.
 

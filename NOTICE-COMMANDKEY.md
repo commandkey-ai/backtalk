@@ -3,7 +3,7 @@
 This is a **modified version** of `backtalk` by Jared Rhodenizer (upstream: https://github.com/jaredrhod/backtalk), prepared by **CommandKey AI** and dated **2026-09-22**, revised **2026-09-23** and **2026-10-01**.
 
 - Based on upstream commit: `84b3a6cd321060cabb74aad6ebe794621cf99bd3` (upstream author `jaredrhod`, dated 2026-08-30).
-- CommandKey AI release: `es-2026.10.01-r3` (the name in `ES_RELEASE`), on branch `es-release`.
+- CommandKey AI release: `es-2026.10.04-r4` (the name in `ES_RELEASE`), on branch `es-release`.
 - License: unchanged, GNU Affero General Public License v3.0 or later. The `LICENSE` file, every copyright line, and every `SPDX-License-Identifier` header are intact. Source for this modified version is the mirror repository itself.
 - Each modified source file carries a "Modified by CommandKey AI, <date>" line near its SPDX header (or an HTML comment at the top of Markdown files), dated 2026-09-22 or 2026-09-23, the date of the last CommandKey AI edit to that file. Files added by CommandKey AI say "Added by CommandKey AI" or carry a CommandKey AI copyright line.
 - Tool versions, stated plainly: `uv.lock` was generated with uv **0.12.15** on the build machine, and `uv lock --check` was run under 0.12.15 to confirm it matches `pyproject.toml`. The installers pin and hash-check uv **0.12.18** for every client install (`uv sync --frozen --python 3.12`) and every launch; that is the version a client machine runs, and it reads the same 0.12-line lockfile without re-resolving.
