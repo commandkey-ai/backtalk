@@ -1,5 +1,5 @@
 # backtalk: talk to your Claude Code agent out loud.
-# Copyright (C) 2026 Executive Stack
+# Copyright (C) 2026 CommandKey AI, LLC
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -15,7 +15,7 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
-# Added by Executive Stack, 2026-09-22 (see NOTICE-EXECUTIVE-STACK.md).
+# Added by CommandKey AI, 2026-09-22 (see NOTICE-COMMANDKEY.md).
 #
 # backtalk installer for Windows: environment, engines, models. Run once
 # from the backtalk folder in PowerShell:
@@ -24,12 +24,12 @@
 #
 # This is the scripted Windows lane. Upstream had the AI improvise the
 # Windows install from prose; this file replaces that so every machine on
-# an Executive Stack release installs the same way:
+# a CommandKey AI release installs the same way:
 #   1. uv, PINNED to one version, downloaded from its GitHub release asset
 #      and refused unless its SHA-256 matches the value written here.
 #      (No `irm ... | iex`.) It is the ONLY uv this install and the
 #      launchers ever use: the managed copy at
-#      %LOCALAPPDATA%\ExecutiveStack\uv\uv.exe, side by side with any uv
+#      %LOCALAPPDATA%\CommandKey\uv\uv.exe, side by side with any uv
 #      the machine already has (never touched, never shadowed, and never
 #      used unless it is exactly the pinned version). No PATH edits.
 #   2. espeak-ng from winget, PINNED to one version.
@@ -50,10 +50,10 @@ $EspeakVersion = "1.52.0"
 
 $release = ""
 if (Test-Path "ES_RELEASE") { $release = (Get-Content "ES_RELEASE" -Raw).Trim() }
-Write-Host "== backtalk install (Executive Stack release $release) =="
+Write-Host "== backtalk install (CommandKey AI release $release) =="
 
 # --- uv (the Python environment manager), PINNED ---
-$binDir = Join-Path $env:LOCALAPPDATA "ExecutiveStack\uv"
+$binDir = Join-Path $env:LOCALAPPDATA "CommandKey\uv"
 $uvExe = Join-Path $binDir "uv.exe"
 function Test-PinnedUv([string]$Path) {
     if (-not $Path -or -not (Test-Path $Path)) { return $false }
@@ -63,7 +63,7 @@ function Test-PinnedUv([string]$Path) {
 $uv = $null
 if (Test-PinnedUv $uvExe) {
     $uv = $uvExe
-    Write-Host "-- uv $UvVersion`: the Executive Stack managed copy at $uvExe"
+    Write-Host "-- uv $UvVersion`: the CommandKey AI managed copy at $uvExe"
 } else {
     $onPath = Get-Command uv -ErrorAction SilentlyContinue
     if ($null -ne $onPath -and (Test-PinnedUv $onPath.Source)) {
@@ -81,7 +81,7 @@ if ($null -eq $uv) {
     $arch = $env:PROCESSOR_ARCHITECTURE
     if ($arch -eq "ARM64") { $target = "aarch64-pc-windows-msvc" }
     elseif ($arch -eq "AMD64") { $target = "x86_64-pc-windows-msvc" }
-    else { throw "no pinned uv build for architecture '$arch'. Ask your Executive Stack contact." }
+    else { throw "no pinned uv build for architecture '$arch'. Ask your CommandKey AI contact." }
     $asset = "uv-$target.zip"
     $url = "https://github.com/astral-sh/uv/releases/download/$UvVersion/$asset"
     $tmp = Join-Path $env:TEMP ("backtalk-uv-" + [guid]::NewGuid().ToString("N"))
@@ -93,14 +93,14 @@ if ($null -eq $uv) {
     $want = $UvSha256[$target]
     if ($got -ne $want) {
         Remove-Item -Recurse -Force $tmp
-        throw "uv download HASH MISMATCH (expected $want, got $got). Refusing to install. Ask your Executive Stack contact."
+        throw "uv download HASH MISMATCH (expected $want, got $got). Refusing to install. Ask your CommandKey AI contact."
     }
     Expand-Archive -Path $zip -DestinationPath $tmp -Force
     New-Item -ItemType Directory -Force -Path $binDir | Out-Null
     Copy-Item -Path (Join-Path $tmp "uv.exe") -Destination $binDir -Force
     Copy-Item -Path (Join-Path $tmp "uvx.exe") -Destination $binDir -Force
     Remove-Item -Recurse -Force $tmp
-    if (-not (Test-PinnedUv $uvExe)) { throw "the installed uv does not report version $UvVersion. Refusing to continue. Ask your Executive Stack contact." }
+    if (-not (Test-PinnedUv $uvExe)) { throw "the installed uv does not report version $UvVersion. Refusing to continue. Ask your CommandKey AI contact." }
     $uv = $uvExe
     Write-Host "   uv $UvVersion installed to $binDir (the launchers call it by this path; nothing was added to PATH)"
 }
@@ -112,7 +112,7 @@ $espeakDll = @(
 ) | Where-Object { Test-Path $_ } | Select-Object -First 1
 if ($null -eq $espeakDll -and -not $env:PHONEMIZER_ESPEAK_LIBRARY) {
     if ($null -eq (Get-Command winget -ErrorAction SilentlyContinue)) {
-        throw "espeak-ng is missing and winget is not available to install it. Ask your Executive Stack contact."
+        throw "espeak-ng is missing and winget is not available to install it. Ask your CommandKey AI contact."
     }
     Write-Host "-- installing espeak-ng $EspeakVersion (the voice engine needs it)"
     & winget install --id eSpeak-NG.eSpeak-NG -e --version $EspeakVersion --source winget --silent --accept-package-agreements --accept-source-agreements

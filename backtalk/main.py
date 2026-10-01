@@ -15,7 +15,7 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
-# Modified by Executive Stack, 2026-09-22 (see NOTICE-EXECUTIVE-STACK.md).
+# Modified by CommandKey AI, 2026-09-22 (see NOTICE-COMMANDKEY.md).
 """backtalk — talk to your Claude Code agent out loud.
 
 Flow: hold the key and speak -> local transcription -> your agent's warm
@@ -231,7 +231,7 @@ def make_permission_gate(mouth):
             # the escape hatch announces itself exactly once, at the
             # moment it becomes relevant (a field case: a new user
             # couldn't find the phrase to turn the checks off). On an
-            # Executive Stack install the hatch is closed by default
+            # CommandKey AI install the hatch is closed by default
             # (allow_voice_bypass false), so it is not advertised.
             _PERM["hinted"] = True
             ask += (" And any time you're done with these checks, say "
@@ -798,7 +798,7 @@ async def amain():
                 mouth.say(f"Push to talk. Hold the {key} key and "
                           "talk; the mic stays closed otherwise.")
         elif verb == "noask" and not CFG.get("allow_voice_bypass"):
-            # Executive Stack policy: the by-voice route into auto-approve
+            # CommandKey AI policy: the by-voice route into auto-approve
             # is closed unless allow_voice_bypass is true in the config.
             # Nothing changes, in memory or on disk, and no confirm is
             # armed. A hand-written "bypassPermissions" in backtalk.json
@@ -807,7 +807,7 @@ async def amain():
             log("[console] noask refused: allow_voice_bypass is false")
             mouth.say("Auto-approve by voice isn't available on this "
                       "install, so I'll keep asking before real actions. "
-                      "Talk to your Executive Stack contact if that "
+                      "Talk to your CommandKey AI contact if that "
                       "needs to change.")
         elif verb == "noask":
             resp = ""

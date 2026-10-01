@@ -15,7 +15,7 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
-# Modified by Executive Stack, 2026-09-23 (see NOTICE-EXECUTIVE-STACK.md).
+# Modified by CommandKey AI, 2026-09-23 (see NOTICE-COMMANDKEY.md).
 """The ears — mic capture with VAD endpointing, transcribed in-process
 by faster-whisper. Local, free, no server, no API key.
 
@@ -81,7 +81,7 @@ def _mlx_repo(model_name: str) -> str:
 def _mlx_model_path(model_name: str) -> str:
     """The local folder holding the MLX weights at their pinned commit.
 
-    Executive Stack change. mlx_whisper.transcribe(path_or_hf_repo=...)
+    CommandKey AI change. mlx_whisper.transcribe(path_or_hf_repo=...)
     has no revision argument: given a repository name it calls
     huggingface_hub.snapshot_download(repo_id=...) itself with no revision
     (mlx-whisper 0.4.3, load_models.load_model), so a client would get

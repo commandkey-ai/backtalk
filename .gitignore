@@ -9,7 +9,7 @@ logs/
 # conversation -- noisy forever, and enough to make an update script believe
 # they had local edits. An enumerated list goes stale the day the code grows.
 .voice_*
-# Modified by Executive Stack, 2026-09-22: uv.lock is COMMITTED in this
+# Modified by CommandKey AI, 2026-09-22: uv.lock is COMMITTED in this
 # release (it used to be ignored here). The launchers run `uv sync --frozen`
 # against it so every machine gets the same reviewed package set.
 backtalk.egg-info/

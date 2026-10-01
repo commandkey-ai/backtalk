@@ -2,7 +2,7 @@
 rem backtalk -- updating has moved. This script does nothing now.
 rem Copyright (C) 2026 Jared Rhodenizer
 rem SPDX-License-Identifier: AGPL-3.0-or-later
-rem Modified by Executive Stack, 2026-09-23 (see NOTICE-EXECUTIVE-STACK.md).
+rem Modified by CommandKey AI, 2026-09-23 (see NOTICE-COMMANDKEY.md).
 rem
 rem WHY THIS IS EMPTY, because the reason is worth knowing before anyone
 rem puts it back.
@@ -29,10 +29,10 @@ rem function and calls it at the very end, so bash reads the whole script
 rem into memory before running any of it. It never needed a copy of itself.
 rem
 rem If this folder has no .git yet because it arrived as a zip, an agent
-rem can wire it up once, keeping backtalk.json. It lands on the Executive
-rem Stack release tag named in the ES_RELEASE file, never on a branch tip:
+rem can wire it up once, keeping backtalk.json. It lands on the CommandKey
+rem AI release tag named in the ES_RELEASE file, never on a branch tip:
 rem   git init -b main
-rem   git remote add origin https://github.com/ExecutiveStack/backtalk
+rem   git remote add origin https://github.com/commandkey-ai/backtalk
 rem   git remote get-url origin   (must print exactly the URL above; if not, stop)
 rem   git fetch --tags origin
 rem   git show <tag>:ES_RELEASE   (must print the tag's own name; the name is
@@ -47,7 +47,7 @@ echo   Updating has moved, and there is nothing here to run.
 echo.
 echo   Open a chat with your agent and say:
 echo.
-echo       update backtalk to the current Executive Stack release and tell me what changed
+echo       update backtalk to the current CommandKey AI release and tell me what changed
 echo.
 echo   It does the same job, and it tells you what arrived.
 echo.

@@ -16,17 +16,17 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
-# Modified by Executive Stack, 2026-09-23 (see NOTICE-EXECUTIVE-STACK.md).
+# Modified by CommandKey AI, 2026-09-23 (see NOTICE-COMMANDKEY.md).
 # backtalk installer — environment, engines, models. Run once.
 # Safe to re-run; every step skips what's already done.
 set -e
 cd "$(dirname "$0")"
 export PATH="$HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin:$PATH"
 
-echo "== backtalk install (Executive Stack release $(tr -d '[:space:]' < ES_RELEASE 2>/dev/null)) =="
+echo "== backtalk install (CommandKey AI release $(tr -d '[:space:]' < ES_RELEASE 2>/dev/null)) =="
 
 # --- uv (the Python environment manager), PINNED ---
-# Executive Stack policy: no curl-pipe-sh. uv is installed from one exact
+# CommandKey AI policy: no curl-pipe-sh. uv is installed from one exact
 # GitHub release asset whose SHA-256 is written here, and the download is
 # refused if the hash does not match. To move to a newer uv, change all
 # three of UV_VERSION and the two hashes below in the same edit.
@@ -37,7 +37,7 @@ echo "== backtalk install (Executive Stack release $(tr -d '[:space:]' < ES_RELE
 # exactly the pinned version). No PATH edits: every launcher calls the
 # managed copy by its absolute path.
 UV_VERSION="0.12.18"
-UV_MANAGED_DIR="$HOME/.local/share/executive-stack/uv"
+UV_MANAGED_DIR="$HOME/.local/share/commandkey/uv"
 UV_MANAGED="$UV_MANAGED_DIR/uv"
 uv_expected_sha() {
   case "$1" in
@@ -58,7 +58,7 @@ install_pinned_uv() {
     Darwin-x86_64) target="x86_64-apple-darwin" ;;
     Linux-x86_64)  target="x86_64-unknown-linux-gnu" ;;
     Linux-aarch64|Linux-arm64) target="aarch64-unknown-linux-gnu" ;;
-    *) echo "   no pinned uv build for $(uname -s)/$(uname -m). Ask your Executive Stack contact."; exit 1 ;;
+    *) echo "   no pinned uv build for $(uname -s)/$(uname -m). Ask your CommandKey AI contact."; exit 1 ;;
   esac
   want="$(uv_expected_sha "$target")"
   asset="uv-$target.tar.gz"
@@ -69,7 +69,7 @@ install_pinned_uv() {
   got="$(sha256_of "$tmp/$asset")"
   if [ "$got" != "$want" ]; then
     rm -rf "$tmp"
-    echo "   uv download HASH MISMATCH (expected $want, got $got). Refusing to install. Ask your Executive Stack contact."
+    echo "   uv download HASH MISMATCH (expected $want, got $got). Refusing to install. Ask your CommandKey AI contact."
     exit 1
   fi
   mkdir -p "$UV_MANAGED_DIR"
@@ -78,7 +78,7 @@ install_pinned_uv() {
   chmod +x "$UV_MANAGED_DIR/uv" "$UV_MANAGED_DIR/uvx"
   rm -rf "$tmp"
   if ! uv_is_pinned "$UV_MANAGED"; then
-    echo "   the installed uv does not report version $UV_VERSION. Refusing to continue. Ask your Executive Stack contact."
+    echo "   the installed uv does not report version $UV_VERSION. Refusing to continue. Ask your CommandKey AI contact."
     exit 1
   fi
   echo "   uv $UV_VERSION installed to $UV_MANAGED_DIR"
@@ -86,7 +86,7 @@ install_pinned_uv() {
 uv_is_pinned() { [ -x "$1" ] && [ "$("$1" --version 2>/dev/null | cut -d' ' -f2)" = "$UV_VERSION" ]; }
 if uv_is_pinned "$UV_MANAGED"; then
   UV="$UV_MANAGED"
-  echo "-- uv $UV_VERSION: the Executive Stack managed copy at $UV_MANAGED"
+  echo "-- uv $UV_VERSION: the CommandKey AI managed copy at $UV_MANAGED"
 elif command -v uv >/dev/null 2>&1 && uv_is_pinned "$(command -v uv)"; then
   UV="$(command -v uv)"
   echo "-- uv $UV_VERSION: already on PATH at $UV"

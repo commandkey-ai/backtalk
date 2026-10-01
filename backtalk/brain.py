@@ -15,6 +15,7 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
+# Modified by CommandKey AI, 2026-09-23 (see NOTICE-COMMANDKEY.md).
 """The warm brain — a persistent Claude session via the Agent SDK,
 streaming.
 
@@ -102,6 +103,16 @@ class WarmBrain:
                 can_use_tool=self._can_use_tool,
                 add_dirs=CFG["extra_dirs"],
                 skills=CFG["visible_skills"],
+                # CommandKey AI: load the person's Claude Code settings
+                # exactly as a typed session does. The SDK loads NO
+                # settings files unless told to (with the default
+                # visible_skills of None it passes no --setting-sources and
+                # the CLI, started as sdk-py, reads none), which would leave
+                # the security layer's PreToolUse hook in
+                # ~/.claude/settings.json out of every voice session, the
+                # very sessions that run in bypassPermissions. Spelled out
+                # so it never depends on an SDK default again.
+                setting_sources=["user", "project", "local"],
                 resume=rid,
             )
         if resume:

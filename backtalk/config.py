@@ -15,7 +15,7 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
-# Modified by Executive Stack, 2026-09-23 (see NOTICE-EXECUTIVE-STACK.md).
+# Modified by CommandKey AI, 2026-09-23 (see NOTICE-COMMANDKEY.md).
 """Configuration — backtalk.json in the repo root, merged over defaults.
 
 backtalk deliberately owns NO personality. Your agent's identity lives in
@@ -75,8 +75,8 @@ DEFAULTS = {
     # behaves as "ask" (a headless voice session could never render
     # the terminal prompt it promised).
     "permission_mode": "ask",
-    # EXECUTIVE STACK POLICY SWITCH. False (the default on every Executive
-    # Stack install): the spoken "stop asking for permission" verb answers
+    # COMMANDKEY POLICY SWITCH. False (the default on every CommandKey
+    # AI install): the spoken "stop asking for permission" verb answers
     # that auto-approve is not available on this install and changes
     # NOTHING, in memory or in this file. A permission_mode of
     # "bypassPermissions" written into backtalk.json by hand (or by the
@@ -146,7 +146,7 @@ DEFAULTS = {
     # Models: tiny.en / base.en / small.en / medium.en — small.en is the
     # accuracy/speed sweet spot on a normal machine.
     "stt_model": "small.en",
-    # EXECUTIVE STACK MODEL PINS. The exact Hugging Face commit of each
+    # COMMANDKEY MODEL PINS. The exact Hugging Face commit of each
     # speech model this release was reviewed with (see MODELS.lock.md).
     # faster-whisper passes the one for stt_model straight to the Hub as
     # `revision=`, so a client machine can only ever download that
@@ -228,7 +228,7 @@ DEFAULTS = {
     # visualizers pair with this contract. Default: the repo root.
     "signals_dir": "",
     # Optional mirror of the signal bus into a second folder (upstream
-    # used it for a hands-tracking companion that the Executive Stack
+    # used it for a hands-tracking companion that the CommandKey AI
     # release does not ship). Left empty it does nothing; kept so an
     # existing backtalk.json with the key still loads.
     "barehands_state_dir": "",

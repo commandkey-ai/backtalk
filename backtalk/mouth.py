@@ -15,7 +15,7 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
-# Modified by Executive Stack, 2026-09-23 (see NOTICE-EXECUTIVE-STACK.md).
+# Modified by CommandKey AI, 2026-09-23 (see NOTICE-COMMANDKEY.md).
 """The mouth — streaming sentence-chunked TTS, played through one
 long-lived output stream.
 
@@ -66,7 +66,7 @@ _pipe_lock = threading.Lock()
 def _pin_kokoro_downloads(revision: str) -> bool:
     """Pin every Kokoro weight download to one Hugging Face commit.
 
-    Executive Stack change. kokoro 0.9.x fetches config.json, the model
+    CommandKey AI change. kokoro 0.9.x fetches config.json, the model
     checkpoint and each voice with huggingface_hub.hf_hub_download and
     never passes a revision, so out of the box a client machine gets
     whatever the repo's main branch holds on the day it first runs.

@@ -15,7 +15,7 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
-# Modified by Executive Stack, 2026-09-23 (see NOTICE-EXECUTIVE-STACK.md).
+# Modified by CommandKey AI, 2026-09-23 (see NOTICE-COMMANDKEY.md).
 """Session log — terminal print + timestamped append to logs/backtalk.log.
 
 Exists because the hardest voice bug ever hit here (the off-by-one
@@ -31,7 +31,7 @@ from pathlib import Path
 
 LOG_PATH = Path(__file__).resolve().parent.parent / "logs" / "backtalk.log"
 
-# Executive Stack: the log is a full conversation transcript, so on the
+# CommandKey AI: the log is a full conversation transcript, so on the
 # systems that honour file modes (macOS, Linux) the folder is created
 # 0700 and the file 0600: this user only, whatever the umask says. Windows
 # has no such modes (chmod there only toggles read-only), so the files
@@ -65,7 +65,7 @@ def _open_append():
         return os.fdopen(fd, "a", encoding="utf-8")
     return LOG_PATH.open("a", encoding="utf-8")
 
-# Executive Stack: size-based rotation. The log holds every utterance and
+# CommandKey AI: size-based rotation. The log holds every utterance and
 # every spoken reply, i.e. a complete conversation transcript, so it is
 # bounded instead of growing forever: when backtalk.log passes ROTATE_AT
 # bytes it becomes backtalk.log.1, .1 becomes .2, .2 becomes .3, and the

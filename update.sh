@@ -1,17 +1,17 @@
 #!/bin/bash
-# backtalk — update to the current Executive Stack release, showing what changed and asking first.
+# backtalk — update to the current CommandKey AI release, showing what changed and asking first.
 # Copyright (C) 2026 Jared Rhodenizer
 # SPDX-License-Identifier: AGPL-3.0-or-later
-# Modified by Executive Stack, 2026-09-23 (see NOTICE-EXECUTIVE-STACK.md).
+# Modified by CommandKey AI, 2026-09-23 (see NOTICE-COMMANDKEY.md).
 #
 # Your backtalk.json is yours: nothing in this script can touch or overwrite it.
 # Safe to run any time; when nothing is new it just says so.
 #
-# This script NEVER pulls a branch tip. It fetches the Executive Stack
+# This script NEVER pulls a branch tip. It fetches the CommandKey AI
 # mirror, reads the release name published in ES_RELEASE on the es-release
 # branch, and checks out exactly that tag. A folder that arrived as a zip
 # is wired to the mirror first, pinned to the release in its own ES_RELEASE.
-# Before anything moves it checks that origin IS the Executive Stack
+# Before anything moves it checks that origin IS the CommandKey AI
 # mirror, that the release name is of the form es-YYYY.MM.DD-rN, and that
 # the tag carries its own name in its ES_RELEASE. It shows what is arriving
 # and asks; `--yes` skips the question (for an agent running it).
@@ -19,7 +19,7 @@
 main() {
   cd "$(dirname "$0")" || exit 1
   CFG="backtalk.json"
-  MIRROR="https://github.com/ExecutiveStack/backtalk"
+  MIRROR="https://github.com/commandkey-ai/backtalk"
   # Named explicitly: a `--depth 1 --branch <tag>` clone is single-branch,
   # so a bare fetch would never learn about es-release.
   REFSPEC="+refs/heads/es-release:refs/remotes/origin/es-release"
@@ -32,10 +32,15 @@ main() {
   done
 
   valid_release() { [[ "$1" =~ $RELEASE_RE ]]; }
-  # True only when this folder fetches from the Executive Stack mirror. A
-  # different origin is reported and left alone, never re-pointed.
+  # True only when this folder fetches from the CommandKey AI mirror. A
+  # different origin is reported and left alone, never re-pointed, with one
+  # exact-string exception: an install made from release r1 or r2 carries
+  # one of the mirror's retired organisation names (Executive-Stack-LLC,
+  # then ExecutiveStack, renamed to commandkey-ai on 2026-10-01). Those
+  # URLs, and only those, are moved to the current mirror once.
   origin_ok() {
     url="$(git remote get-url origin 2>/dev/null)"
+    case "$url" in "https://github.com/Executive-Stack-LLC/backtalk"|"https://github.com/Executive-Stack-LLC/backtalk.git"|"https://github.com/ExecutiveStack/backtalk"|"https://github.com/ExecutiveStack/backtalk.git") git remote set-url origin "$MIRROR"; url="$(git remote get-url origin 2>/dev/null)" ;; esac
     [ "$url" = "$MIRROR" ] || [ "$url" = "$MIRROR.git" ]
   }
   # 0 fetched; 1 the mirror did not answer; 2 the mirror moved a tag this
@@ -58,7 +63,7 @@ main() {
     # release it arrived as, keeping the config
     PIN="$(tr -d '[:space:]' < ES_RELEASE 2>/dev/null)"
     if ! valid_release "$PIN"; then
-      echo "no usable ES_RELEASE file here, so I cannot tell which release this is. Ask your Executive Stack contact."
+      echo "no usable ES_RELEASE file here, so I cannot tell which release this is. Ask your CommandKey AI contact."
       exit 1
     fi
     [ -f "$CFG" ] && cp "$CFG" "$CFG.mine"
@@ -71,20 +76,20 @@ main() {
     else
       rm -rf .git
       [ -f "$CFG.mine" ] && mv "$CFG.mine" "$CFG"
-      echo "the mirror does not carry the tag $PIN; leaving this folder as it is. Ask your Executive Stack contact."
+      echo "the mirror does not carry the tag $PIN; leaving this folder as it is. Ask your CommandKey AI contact."
       exit 1
     fi
     [ -f "$CFG.mine" ] && mv "$CFG.mine" "$CFG"
   fi
 
   if ! origin_ok; then
-    echo "this folder gets its updates from '$(git remote get-url origin 2>/dev/null)', not from the Executive Stack mirror; refusing to update it. Ask your Executive Stack contact."
+    echo "this folder gets its updates from '$(git remote get-url origin 2>/dev/null)', not from the CommandKey AI mirror; refusing to update it. Ask your CommandKey AI contact."
     exit 1
   fi
   fetch_mirror
   case $? in
     1) echo "could not reach the mirror (offline?); nothing changed."; exit 0 ;;
-    2) echo "the mirror changed a release this folder already holds; refusing to trust it. Nothing changed. Ask your Executive Stack contact."; exit 1 ;;
+    2) echo "the mirror changed a release this folder already holds; refusing to trust it. Nothing changed. Ask your CommandKey AI contact."; exit 1 ;;
   esac
   CUR="$(tr -d '[:space:]' < ES_RELEASE 2>/dev/null)"
   NEW="$(git show origin/es-release:ES_RELEASE 2>/dev/null | tr -d '[:space:]')"
@@ -93,11 +98,11 @@ main() {
     exit 0
   fi
   if ! valid_release "$NEW"; then
-    echo "the mirror names a release in a form this updater does not accept; nothing changed. Ask your Executive Stack contact."
+    echo "the mirror names a release in a form this updater does not accept; nothing changed. Ask your CommandKey AI contact."
     exit 1
   fi
   if ! tag_checks_out "$NEW"; then
-    echo "the mirror names release $NEW but that tag is missing or does not check out; nothing changed. Ask your Executive Stack contact."
+    echo "the mirror names release $NEW but that tag is missing or does not check out; nothing changed. Ask your CommandKey AI contact."
     exit 1
   fi
   if [ "$NEW" = "$CUR" ] && [ "$(git rev-parse HEAD)" = "$(git rev-parse "$NEW^{commit}")" ]; then
