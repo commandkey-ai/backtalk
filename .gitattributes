@@ -1,3 +1,2 @@
 * text=auto eol=lf
-*.bat -text
-update.bat -text
+*.bat text eol=crlf
